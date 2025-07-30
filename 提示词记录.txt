@@ -1,0 +1,181 @@
+### prompt提示词页面
+技术栈：vaadin24 + springboot3
+使用现有页面模板PromptMgmtView.java, 修改页面内容,帮我生成一个提示词管理页面，要求如下
+1.页面上方第一行有一个搜索输入框，一个类别下拉框，一个搜索按钮，一个新建类别按钮，输入内容后，点击搜索按钮，页面下方显示搜索结果（下拉类别可选）
+2.数据库表结构如下：CREATE TABLE `user_prompt` (
+`USER_ID` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+`ID_PROMPT` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+`NAME_PROMPT` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+`CD_CATEGORY` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '类别',
+`DT_CREATE` datetime DEFAULT NULL,
+`CONTENT` varchar(16000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+PRIMARY KEY (`USER_ID`,`ID_PROMPT`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+对应实体类：UserPrompt.java,增删改查使用：UserPromptMapper
+点击新建类别按钮，打开一个模态框，模态框内显示类别名称输入框，类别ID使用时间戳自动生成，模态框内添加一个保存按钮，点击保存按钮，保存类别，并联动插入数据库内容，保存成功后，页面刷新。
+2.1 类别存储数据库表结构如下：CREATE TABLE `prompt_category` (
+`user_id` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+`id_category` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+`name_category` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+PRIMARY KEY (`user_id`,`id_category`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;实体类：PromptCategory.java,增删改查使用：PromptCategoryMapper
+3. 页面下方显示搜索结果，以卡片形式展示，卡片最上方显示提示模板名称和创建时间，中间展示部分提示内容，卡片根据页面大小可响应式换行，
+4. 卡片最上方一行添加一个删除按钮，点击删除按钮，删除当前卡片，联动删除数据库内容，删除成功后，页面刷新。
+5. 卡片最上方一行添加一个编辑按钮，点击编辑按钮，打开一个模态框，模态框内显示当前卡片内容，模态框内添加一个保存按钮，点击保存按钮，保存修改，并联动更新数据库内容，保存成功后，页面刷新。
+6. 卡片右下方一行添加一个复制按钮，点击复制按钮，将当前卡片内容复制到剪贴板，并提示复制成功。
+7. 卡片最上方一行背景色为浅蓝色
+用户信息来自成员变量currentUser
+
+
+在此基础上做一些优化：
+1. 卡片日期显示格式为：yyyy-MM-dd HH:mm:ss
+2. 卡片尺寸需要缩小一些，中间的提示内容只显示三行
+3. 删除提示词卡片时弹出提示确认框，点击确认后删除
+4. 点击复制按钮则直接复制当前提示词内容，生成新的ID_prompt, name_prompt则在原来的基础上加个后缀“-copy",并提示复制成功,刷新页面重新加载所有提示词
+
+在当前页面的基础上做如下更改：
+1. 这个是用户提示词表结构
+   CREATE TABLE `user_prompt` (
+   `USER_ID` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+   `ID_PROMPT` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+   `NAME_PROMPT` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL,
+   `CD_CATEGORY` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '类别',
+   `DT_CREATE` datetime DEFAULT NULL,
+   `CONTENT` varchar(16000) COLLATE utf8mb4_general_ci DEFAULT NULL,
+   PRIMARY KEY (`USER_ID`,`ID_PROMPT`)
+   )
+2. 在第一行按钮：新建类别后面加个按钮【新建提示词】
+3. 点击该按钮弹出一个对话框，可以输入提示词名称，长度限制32个中文或英文，提示词类别，根据类别表中的内容以下拉框形式展示。
+   还有一个提示词内容的文本区域，长度限制16000个中文或英文。
+   下方有保存、取消按钮，保存则自动生成id_prompt然后插入数据库、刷新页面
+
+===============================================================================
+
+1.以下是用户管理及权限角色等实现RBAC权限管理的表结构
+CREATE TABLE `permissions`  (
+  `PERMISSION_ID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '权限ID',
+  `RESOURCE_NAME` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '资源名',
+  `ACTION` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '中文名',
+  `VERSION` decimal(10, 0) NULL DEFAULT NULL COMMENT '版本',
+  `ID_PARENT` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '父id',
+  `NBR_LEVEL` tinyint(1) NULL DEFAULT NULL COMMENT '层级',
+  `NBR_ORDER` int NOT NULL COMMENT '序号',
+  `TIMESTAMP` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '时间戳',
+  PRIMARY KEY (`PERMISSION_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '权限信息' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for roles
+-- ----------------------------
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE `roles`  (
+  `ROLE_ID` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '角色ID',
+  `ID_INSTITUTION` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '机构ID',
+  `ROLE_NAME` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '角色名称',
+  `VERSION` tinyint NULL DEFAULT NULL COMMENT '版本',
+  `ROLE_DESC` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '描述',
+  `TIMESTAMP` datetime NULL DEFAULT CURRENT_TIMESTAMP COMMENT '时间戳',
+  PRIMARY KEY (`ID_INSTITUTION`, `ROLE_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for roles_permissions
+-- ----------------------------
+DROP TABLE IF EXISTS `roles_permissions`;
+CREATE TABLE `roles_permissions`  (
+  `ROLE_ID` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '角色ID',
+  `PERMISSION_ID` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '权限ID',
+  `VERSION` tinyint NULL DEFAULT NULL COMMENT '版本',
+  `TIMESTAMP` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '时间戳',
+  PRIMARY KEY (`ROLE_ID`, `PERMISSION_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色权限关联' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for users
+-- ----------------------------
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users`  (
+  `USER_ID` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户ID',
+  `USER_NAME` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `EMAIL` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `PASSWORD` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `CREATE_TIME` datetime NULL DEFAULT NULL,
+  `EXPIRE_TIME` datetime NULL DEFAULT NULL,
+  `DEPARTMENT` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ROLE_ID` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ORGANIZATION` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `ID_INSTITUTION` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `VERSION` tinyint NULL DEFAULT NULL COMMENT '版本',
+  `CD_PHONE` varchar(12) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `USER_FLAG` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '用户类型',
+  `CD_FROZEN_STATE` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '冻结状态',
+  `DT_LOGIN` date NULL DEFAULT NULL COMMENT '最后登录时间',
+  PRIMARY KEY (`USER_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for users_roles
+-- ----------------------------
+DROP TABLE IF EXISTS `users_roles`;
+CREATE TABLE `users_roles`  (
+  `USER_ID` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '用户ID',
+  `ROLE_ID` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '角色ID',
+  `VERSION` tinyint NULL DEFAULT NULL COMMENT '版本',
+  `TIMESTAMP` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '时间戳',
+  PRIMARY KEY (`USER_ID`, `ROLE_ID`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户角色关联表' ROW_FORMAT = Dynamic;
+2. 使用vaadin24框架，实现一个用户管理页面，尽量使用gridpro组件。文件名称UserMgmtView.java,写入这个包下：com.sl.usermgmt.ui
+3. 在页面第一行有一个输入框用来搜索用户id，后面有一个搜索按钮，一个新增用户按钮，点击搜索按钮可模糊搜索，点击新增按钮可以弹窗新增用户，信息根据数据库表定义。
+4. 下方有一个grid表格，展示了用户信息，包括id/name/部门、机构等信息。
+5. 表格倒数第二列有个按钮[删除】，点击弹出确认框，用户确认后从数据库删除该用户，然后刷新表格。
+5. 表格最后一列有个按钮【修改】，点击可以弹窗对用户信息进行修改，user_ID不能修改
+
+============================角色管理========================
+1. 基于前面你看到的表结构，参考用户管理页面，实现一个角色管理页面。
+2. 同样使用grid组件实现，布局和用户管理相似，实现对角色的增删改查功能
+3. 文件名称RolesMgmtView.java,写入这个包下：com.sl.usermgmt.ui
+
+====================================================rag================
+根据当前页面RagMgmtView.java以及如下表结构实现一个rag的页面
+CREATE TABLE `knowledge_base` (
+  `ID_BASE` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+  `NAME_BASE` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+  `DESC` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `USER_ID` varchar(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `NAME_PATH` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '路径',
+  `NAME_COLLECTION` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '集合名称',
+  `DB_TYPE` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '存储类型可选',
+  `SEGMENTED_MODE` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '分段模式',
+  `EMBEDDING_MODEL` varchar(64) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '嵌入模型名称',
+  `SEARCH_TYPE` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '检索类型，向量、全文、混合',
+  `SEGMENT_LENGTH` int DEFAULT NULL,
+  `SEGMENT_OVERLAP` int DEFAULT NULL,
+  `FLAG_RERANK` varchar(1) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  PRIMARY KEY (`USER_ID`,`NAME_BASE`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `knowledge_base_file` (
+  `ID_BASE` varchar(64) COLLATE utf8mb4_general_ci NOT NULL,
+  `FILE_PATH` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `FILE_NAME` varchar(128) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `FILE_SIZE` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `DT_UPLOAD` datetime NOT NULL,
+  PRIMARY KEY (`ID_BASE`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+将数据库及业务操作封装到RagService.java 类中，包：com.sl.service
+1. 该页面上方是个tab，点击可切换，默认进入第一个，知识库，第二个tab是配置知识库详情
+1. 知识库页面最上方是一个搜索框、搜索按钮、新建按钮，点击搜索框可搜索当前用户已经创建的知识库，点击新建弹窗用户输入必要信息创建新的知识库。
+2. 下方是一个grid表格，展示基本信息，最后两列有修改、删除按钮，点击可对当前行进行操作。
+第二个tab可以针对用户选择的知识库进行文件上传、展示、删除等操作。
+3. 文件上传默认目录读取application.properties中的配置knowledge.base.path，每个用户创建的知识库在当前目录下自动新建一个用户ID为目录名的目录用来存储用户的文件。
+
+
+
+
+
+
+
+
+
+

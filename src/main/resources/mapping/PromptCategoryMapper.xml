@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sl.mapper.PromptCategoryMapper" >
+  <resultMap id="BaseResultMap" type="com.sl.entity.PromptCategory" >
+    <id column="user_id" property="userId" jdbcType="VARCHAR" />
+    <id column="id_category" property="idCategory" jdbcType="VARCHAR" />
+    <result column="name_category" property="nameCategory" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    user_id, id_category, name_category
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.PromptCategoryExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from prompt_category
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="map" >
+    select 
+    <include refid="Base_Column_List" />
+    from prompt_category
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_category = #{idCategory,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="map" >
+    delete from prompt_category
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_category = #{idCategory,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.sl.entity.PromptCategoryExample" >
+    delete from prompt_category
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.sl.entity.PromptCategory" >
+    insert into prompt_category (user_id, id_category, name_category
+      )
+    values (#{userId,jdbcType=VARCHAR}, #{idCategory,jdbcType=VARCHAR}, #{nameCategory,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.sl.entity.PromptCategory" >
+    insert into prompt_category
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="idCategory != null" >
+        id_category,
+      </if>
+      <if test="nameCategory != null" >
+        name_category,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="idCategory != null" >
+        #{idCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="nameCategory != null" >
+        #{nameCategory,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.PromptCategory" >
+    update prompt_category
+    <set >
+      <if test="nameCategory != null" >
+        name_category = #{nameCategory,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_category = #{idCategory,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.sl.entity.PromptCategory" >
+    update prompt_category
+    set name_category = #{nameCategory,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_category = #{idCategory,jdbcType=VARCHAR}
+  </update>
+</mapper>

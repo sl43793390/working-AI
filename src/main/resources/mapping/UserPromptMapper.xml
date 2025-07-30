@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sl.mapper.UserPromptMapper" >
+  <resultMap id="BaseResultMap" type="com.sl.entity.UserPrompt" >
+    <id column="USER_ID" property="userId" jdbcType="VARCHAR" />
+    <id column="ID_PROMPT" property="idPrompt" jdbcType="VARCHAR" />
+    <result column="NAME_PROMPT" property="namePrompt" jdbcType="VARCHAR" />
+    <result column="CD_CATEGORY" property="cdCategory" jdbcType="VARCHAR" />
+    <result column="DT_CREATE" property="dtCreate" jdbcType="TIMESTAMP" />
+    <result column="CONTENT" property="content" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    USER_ID, ID_PROMPT, NAME_PROMPT, CD_CATEGORY, DT_CREATE, CONTENT
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.UserPromptExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from user_prompt
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="map" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_prompt
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and ID_PROMPT = #{idPrompt,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="map" >
+    delete from user_prompt
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and ID_PROMPT = #{idPrompt,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.sl.entity.UserPromptExample" >
+    delete from user_prompt
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.sl.entity.UserPrompt" >
+    insert into user_prompt (USER_ID, ID_PROMPT, NAME_PROMPT, 
+      CD_CATEGORY, DT_CREATE, CONTENT
+      )
+    values (#{userId,jdbcType=VARCHAR}, #{idPrompt,jdbcType=VARCHAR}, #{namePrompt,jdbcType=VARCHAR}, 
+      #{cdCategory,jdbcType=VARCHAR}, #{dtCreate,jdbcType=TIMESTAMP}, #{content,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.sl.entity.UserPrompt" >
+    insert into user_prompt
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="idPrompt != null" >
+        ID_PROMPT,
+      </if>
+      <if test="namePrompt != null" >
+        NAME_PROMPT,
+      </if>
+      <if test="cdCategory != null" >
+        CD_CATEGORY,
+      </if>
+      <if test="dtCreate != null" >
+        DT_CREATE,
+      </if>
+      <if test="content != null" >
+        CONTENT,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="idPrompt != null" >
+        #{idPrompt,jdbcType=VARCHAR},
+      </if>
+      <if test="namePrompt != null" >
+        #{namePrompt,jdbcType=VARCHAR},
+      </if>
+      <if test="cdCategory != null" >
+        #{cdCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="dtCreate != null" >
+        #{dtCreate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        #{content,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.UserPrompt" >
+    update user_prompt
+    <set >
+      <if test="namePrompt != null" >
+        NAME_PROMPT = #{namePrompt,jdbcType=VARCHAR},
+      </if>
+      <if test="cdCategory != null" >
+        CD_CATEGORY = #{cdCategory,jdbcType=VARCHAR},
+      </if>
+      <if test="dtCreate != null" >
+        DT_CREATE = #{dtCreate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="content != null" >
+        CONTENT = #{content,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and ID_PROMPT = #{idPrompt,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.sl.entity.UserPrompt" >
+    update user_prompt
+    set NAME_PROMPT = #{namePrompt,jdbcType=VARCHAR},
+      CD_CATEGORY = #{cdCategory,jdbcType=VARCHAR},
+      DT_CREATE = #{dtCreate,jdbcType=TIMESTAMP},
+      CONTENT = #{content,jdbcType=VARCHAR}
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and ID_PROMPT = #{idPrompt,jdbcType=VARCHAR}
+  </update>
+</mapper>

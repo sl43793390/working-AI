@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sl.mapper.KnowledgeBaseMapper" >
+  <resultMap id="BaseResultMap" type="com.sl.entity.KnowledgeBase" >
+    <id column="USER_ID" property="userId" jdbcType="VARCHAR" />
+    <id column="NAME_BASE" property="nameBase" jdbcType="VARCHAR" />
+    <result column="ID_BASE" property="idBase" jdbcType="VARCHAR" />
+    <result column="DESC_BASE" property="descBase" jdbcType="VARCHAR" />
+    <result column="NAME_PATH" property="namePath" jdbcType="VARCHAR" />
+    <result column="NAME_COLLECTION" property="nameCollection" jdbcType="VARCHAR" />
+    <result column="DB_TYPE" property="dbType" jdbcType="VARCHAR" />
+    <result column="SEGMENTED_MODE" property="segmentedMode" jdbcType="VARCHAR" />
+    <result column="EMBEDDING_MODEL" property="embeddingModel" jdbcType="VARCHAR" />
+    <result column="SEARCH_TYPE" property="searchType" jdbcType="VARCHAR" />
+    <result column="SEGMENT_LENGTH" property="segmentLength" jdbcType="INTEGER" />
+    <result column="SEGMENT_OVERLAP" property="segmentOverlap" jdbcType="INTEGER" />
+    <result column="FLAG_RERANK" property="flagRerank" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    USER_ID, NAME_BASE, ID_BASE, DESC_BASE, NAME_PATH, NAME_COLLECTION, DB_TYPE, SEGMENTED_MODE, 
+    EMBEDDING_MODEL, SEARCH_TYPE, SEGMENT_LENGTH, SEGMENT_OVERLAP, FLAG_RERANK
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.KnowledgeBaseExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from knowledge_base
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="map" >
+    select 
+    <include refid="Base_Column_List" />
+    from knowledge_base
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and NAME_BASE = #{nameBase,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="map" >
+    delete from knowledge_base
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and NAME_BASE = #{nameBase,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.sl.entity.KnowledgeBaseExample" >
+    delete from knowledge_base
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.sl.entity.KnowledgeBase" >
+    insert into knowledge_base (USER_ID, NAME_BASE, ID_BASE, 
+      DESC_BASE, NAME_PATH, NAME_COLLECTION, 
+      DB_TYPE, SEGMENTED_MODE, EMBEDDING_MODEL, 
+      SEARCH_TYPE, SEGMENT_LENGTH, SEGMENT_OVERLAP, 
+      FLAG_RERANK)
+    values (#{userId,jdbcType=VARCHAR}, #{nameBase,jdbcType=VARCHAR}, #{idBase,jdbcType=VARCHAR}, 
+      #{descBase,jdbcType=VARCHAR}, #{namePath,jdbcType=VARCHAR}, #{nameCollection,jdbcType=VARCHAR}, 
+      #{dbType,jdbcType=VARCHAR}, #{segmentedMode,jdbcType=VARCHAR}, #{embeddingModel,jdbcType=VARCHAR}, 
+      #{searchType,jdbcType=VARCHAR}, #{segmentLength,jdbcType=INTEGER}, #{segmentOverlap,jdbcType=INTEGER}, 
+      #{flagRerank,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.sl.entity.KnowledgeBase" >
+    insert into knowledge_base
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        USER_ID,
+      </if>
+      <if test="nameBase != null" >
+        NAME_BASE,
+      </if>
+      <if test="idBase != null" >
+        ID_BASE,
+      </if>
+      <if test="descBase != null" >
+        DESC_BASE,
+      </if>
+      <if test="namePath != null" >
+        NAME_PATH,
+      </if>
+      <if test="nameCollection != null" >
+        NAME_COLLECTION,
+      </if>
+      <if test="dbType != null" >
+        DB_TYPE,
+      </if>
+      <if test="segmentedMode != null" >
+        SEGMENTED_MODE,
+      </if>
+      <if test="embeddingModel != null" >
+        EMBEDDING_MODEL,
+      </if>
+      <if test="searchType != null" >
+        SEARCH_TYPE,
+      </if>
+      <if test="segmentLength != null" >
+        SEGMENT_LENGTH,
+      </if>
+      <if test="segmentOverlap != null" >
+        SEGMENT_OVERLAP,
+      </if>
+      <if test="flagRerank != null" >
+        FLAG_RERANK,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="nameBase != null" >
+        #{nameBase,jdbcType=VARCHAR},
+      </if>
+      <if test="idBase != null" >
+        #{idBase,jdbcType=VARCHAR},
+      </if>
+      <if test="descBase != null" >
+        #{descBase,jdbcType=VARCHAR},
+      </if>
+      <if test="namePath != null" >
+        #{namePath,jdbcType=VARCHAR},
+      </if>
+      <if test="nameCollection != null" >
+        #{nameCollection,jdbcType=VARCHAR},
+      </if>
+      <if test="dbType != null" >
+        #{dbType,jdbcType=VARCHAR},
+      </if>
+      <if test="segmentedMode != null" >
+        #{segmentedMode,jdbcType=VARCHAR},
+      </if>
+      <if test="embeddingModel != null" >
+        #{embeddingModel,jdbcType=VARCHAR},
+      </if>
+      <if test="searchType != null" >
+        #{searchType,jdbcType=VARCHAR},
+      </if>
+      <if test="segmentLength != null" >
+        #{segmentLength,jdbcType=INTEGER},
+      </if>
+      <if test="segmentOverlap != null" >
+        #{segmentOverlap,jdbcType=INTEGER},
+      </if>
+      <if test="flagRerank != null" >
+        #{flagRerank,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.KnowledgeBase" >
+    update knowledge_base
+    <set >
+      <if test="idBase != null" >
+        ID_BASE = #{idBase,jdbcType=VARCHAR},
+      </if>
+      <if test="descBase != null" >
+        DESC_BASE = #{descBase,jdbcType=VARCHAR},
+      </if>
+      <if test="namePath != null" >
+        NAME_PATH = #{namePath,jdbcType=VARCHAR},
+      </if>
+      <if test="nameCollection != null" >
+        NAME_COLLECTION = #{nameCollection,jdbcType=VARCHAR},
+      </if>
+      <if test="dbType != null" >
+        DB_TYPE = #{dbType,jdbcType=VARCHAR},
+      </if>
+      <if test="segmentedMode != null" >
+        SEGMENTED_MODE = #{segmentedMode,jdbcType=VARCHAR},
+      </if>
+      <if test="embeddingModel != null" >
+        EMBEDDING_MODEL = #{embeddingModel,jdbcType=VARCHAR},
+      </if>
+      <if test="searchType != null" >
+        SEARCH_TYPE = #{searchType,jdbcType=VARCHAR},
+      </if>
+      <if test="segmentLength != null" >
+        SEGMENT_LENGTH = #{segmentLength,jdbcType=INTEGER},
+      </if>
+      <if test="segmentOverlap != null" >
+        SEGMENT_OVERLAP = #{segmentOverlap,jdbcType=INTEGER},
+      </if>
+      <if test="flagRerank != null" >
+        FLAG_RERANK = #{flagRerank,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and NAME_BASE = #{nameBase,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.sl.entity.KnowledgeBase" >
+    update knowledge_base
+    set ID_BASE = #{idBase,jdbcType=VARCHAR},
+      DESC_BASE = #{descBase,jdbcType=VARCHAR},
+      NAME_PATH = #{namePath,jdbcType=VARCHAR},
+      NAME_COLLECTION = #{nameCollection,jdbcType=VARCHAR},
+      DB_TYPE = #{dbType,jdbcType=VARCHAR},
+      SEGMENTED_MODE = #{segmentedMode,jdbcType=VARCHAR},
+      EMBEDDING_MODEL = #{embeddingModel,jdbcType=VARCHAR},
+      SEARCH_TYPE = #{searchType,jdbcType=VARCHAR},
+      SEGMENT_LENGTH = #{segmentLength,jdbcType=INTEGER},
+      SEGMENT_OVERLAP = #{segmentOverlap,jdbcType=INTEGER},
+      FLAG_RERANK = #{flagRerank,jdbcType=VARCHAR}
+    where USER_ID = #{userId,jdbcType=VARCHAR}
+      and NAME_BASE = #{nameBase,jdbcType=VARCHAR}
+  </update>
+</mapper>
