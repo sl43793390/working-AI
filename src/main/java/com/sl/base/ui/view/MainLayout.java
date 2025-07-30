@@ -26,6 +26,8 @@ import com.vaadin.flow.server.menu.MenuEntry;
 import com.vaadin.flow.spring.security.AuthenticationContext;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import jakarta.annotation.security.PermitAll;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 
@@ -33,9 +35,9 @@ import static com.vaadin.flow.theme.lumo.LumoUtility.*;
 @Layout
 @PermitAll // When security is enabled, allow all authenticated users
 public final class MainLayout extends AppLayout {
+    private AuthenticationContext authenticationContext;
 
-
-    MainLayout() {
+    MainLayout(AuthenticationContext authenticationContext) {
         setPrimarySection(Section.DRAWER);
         addToDrawer(createHeader(), new Scroller(createSideNav()), createUserMenu());
     }
@@ -89,8 +91,17 @@ public final class MainLayout extends AppLayout {
 //            userMenuItem.getSubMenu().addItem("View Profile",
 //                    event -> UI.getCurrent().getPage().open(user.getProfileUrl()));
 //        }
+
         // TODO Add additional items to the user menu if needed
-        userMenuItem.getSubMenu().addItem("Logout", event -> VaadinService.getCurrent().closeSession(VaadinSession.getCurrent()));
+        userMenuItem.getSubMenu().addItem("Logout", event ->{
+            VaadinService.getCurrent().closeSession(VaadinSession.getCurrent());
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            authentication.setAuthenticated(false);
+            if (null != authenticationContext){
+                authenticationContext.logout();
+            }
+            UI.getCurrent().navigate("login");
+        } );
 
         return userMenu;
     }

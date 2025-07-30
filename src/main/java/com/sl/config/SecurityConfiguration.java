@@ -4,10 +4,12 @@ import com.sl.base.ui.view.LoginView;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @EnableWebSecurity
@@ -18,22 +20,24 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     protected void configure(HttpSecurity http) throws Exception {
         // Configure your static resources with public access before calling
         // super.configure(HttpSecurity) as it adds final anyRequest matcher
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/register", "/public/**")
-            .permitAll())
-            .formLogin(formLogin ->
-                        formLogin
-                                .loginPage("/login") // 指定自定义登录页面的URL
-                                .permitAll().defaultSuccessUrl("/chat", true))
-                // Vaadin 特定配置 (重要！)
-                .csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/login", "/vaadinServlet/**", "/service-worker.js") // 忽略 Vaadin 内部请求的 CSRF
-                );
+//        http.authorizeHttpRequests(auth -> auth.requestMatchers("/login", "/register", "/public/**")
+//            .permitAll())
+//            .formLogin(formLogin ->
+//                        formLogin
+//                                .loginPage("/login") // 指定自定义登录页面的URL
+//                                .permitAll()
+//                                .defaultSuccessUrl("/", true) // 登录成功后跳转到根路径
+//                )
+//                // Vaadin 特定配置 (重要！)
+//                .csrf(csrf -> csrf
+//                        .ignoringRequestMatchers("/login", "/vaadinServlet/**", "/service-worker.js") // 忽略 Vaadin 内部请求的 CSRF
+//                );
 
         super.configure(http); 
 
         // This is important to register your login view to the
         // navigation access control mechanism:
-        setLoginView(http, LoginView.class);
+        setLoginView(http, LoginView.class, "");
     }
 
     @Override
@@ -43,7 +47,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
     }
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);  // 使用 BCrypt 进行密码加密
+        return NoOpPasswordEncoder.getInstance();
     }
 
 }
