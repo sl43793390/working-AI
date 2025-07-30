@@ -3,8 +3,8 @@
 <mapper namespace="com.sl.mapper.KnowledgeBaseFileMapper" >
   <resultMap id="BaseResultMap" type="com.sl.entity.KnowledgeBaseFile" >
     <id column="ID_BASE" property="idBase" jdbcType="VARCHAR" />
+    <id column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
     <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
-    <result column="FILE_NAME" property="fileName" jdbcType="VARCHAR" />
     <result column="FILE_SIZE" property="fileSize" jdbcType="VARCHAR" />
     <result column="DT_UPLOAD" property="dtUpload" jdbcType="TIMESTAMP" />
   </resultMap>
@@ -38,7 +38,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    ID_BASE, FILE_PATH, FILE_NAME, FILE_SIZE, DT_UPLOAD
+    ID_BASE, FILE_NAME, FILE_PATH, FILE_SIZE, DT_UPLOAD
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.KnowledgeBaseFileExample" >
     select
@@ -55,15 +55,17 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String" >
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="map" >
     select 
     <include refid="Base_Column_List" />
     from knowledge_base_file
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
+      and FILE_NAME = #{fileName,jdbcType=VARCHAR}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
+  <delete id="deleteByPrimaryKey" parameterType="map" >
     delete from knowledge_base_file
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
+      and FILE_NAME = #{fileName,jdbcType=VARCHAR}
   </delete>
   <delete id="deleteByExample" parameterType="com.sl.entity.KnowledgeBaseFileExample" >
     delete from knowledge_base_file
@@ -72,9 +74,9 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.sl.entity.KnowledgeBaseFile" >
-    insert into knowledge_base_file (ID_BASE, FILE_PATH, FILE_NAME, 
+    insert into knowledge_base_file (ID_BASE, FILE_NAME, FILE_PATH, 
       FILE_SIZE, DT_UPLOAD)
-    values (#{idBase,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, 
+    values (#{idBase,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
       #{fileSize,jdbcType=VARCHAR}, #{dtUpload,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.sl.entity.KnowledgeBaseFile" >
@@ -83,11 +85,11 @@
       <if test="idBase != null" >
         ID_BASE,
       </if>
-      <if test="filePath != null" >
-        FILE_PATH,
-      </if>
       <if test="fileName != null" >
         FILE_NAME,
+      </if>
+      <if test="filePath != null" >
+        FILE_PATH,
       </if>
       <if test="fileSize != null" >
         FILE_SIZE,
@@ -100,11 +102,11 @@
       <if test="idBase != null" >
         #{idBase,jdbcType=VARCHAR},
       </if>
-      <if test="filePath != null" >
-        #{filePath,jdbcType=VARCHAR},
-      </if>
       <if test="fileName != null" >
         #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="filePath != null" >
+        #{filePath,jdbcType=VARCHAR},
       </if>
       <if test="fileSize != null" >
         #{fileSize,jdbcType=VARCHAR},
@@ -120,9 +122,6 @@
       <if test="filePath != null" >
         FILE_PATH = #{filePath,jdbcType=VARCHAR},
       </if>
-      <if test="fileName != null" >
-        FILE_NAME = #{fileName,jdbcType=VARCHAR},
-      </if>
       <if test="fileSize != null" >
         FILE_SIZE = #{fileSize,jdbcType=VARCHAR},
       </if>
@@ -131,13 +130,14 @@
       </if>
     </set>
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
+      and FILE_NAME = #{fileName,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.sl.entity.KnowledgeBaseFile" >
     update knowledge_base_file
     set FILE_PATH = #{filePath,jdbcType=VARCHAR},
-      FILE_NAME = #{fileName,jdbcType=VARCHAR},
       FILE_SIZE = #{fileSize,jdbcType=VARCHAR},
       DT_UPLOAD = #{dtUpload,jdbcType=TIMESTAMP}
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
+      and FILE_NAME = #{fileName,jdbcType=VARCHAR}
   </update>
 </mapper>

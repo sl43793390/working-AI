@@ -3,11 +3,12 @@ package com.sl.mapper;
 import com.sl.entity.KnowledgeBaseFile;
 import com.sl.entity.KnowledgeBaseFileExample;
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface KnowledgeBaseFileMapper {
     int deleteByExample(KnowledgeBaseFileExample example);
 
-    int deleteByPrimaryKey(String idBase);
+    int deleteByPrimaryKey(@Param("idBase") String idBase, @Param("fileName") String fileName);
 
     int insert(KnowledgeBaseFile record);
 
@@ -15,7 +16,7 @@ public interface KnowledgeBaseFileMapper {
 
     List<KnowledgeBaseFile> selectByExample(KnowledgeBaseFileExample example);
 
-    KnowledgeBaseFile selectByPrimaryKey(String idBase);
+    KnowledgeBaseFile selectByPrimaryKey(@Param("idBase") String idBase, @Param("fileName") String fileName);
 
     int updateByPrimaryKeySelective(KnowledgeBaseFile record);
 

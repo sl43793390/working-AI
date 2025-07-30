@@ -102,8 +102,8 @@ public class RagService {
      * @param idBase 知识库ID
      * @return 是否删除成功
      */
-    public boolean deleteFileFromKnowledgeBase(String idBase) {
-        int result = knowledgeBaseFileMapper.deleteByPrimaryKey(idBase);
+    public boolean deleteFileFromKnowledgeBase(String idBase,String fileName) {
+        int result = knowledgeBaseFileMapper.deleteByPrimaryKey(idBase,fileName);
         return result > 0;
     }
 }
