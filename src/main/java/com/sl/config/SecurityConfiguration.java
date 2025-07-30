@@ -37,7 +37,7 @@ public class SecurityConfiguration extends VaadinWebSecurity {
 
         // This is important to register your login view to the
         // navigation access control mechanism:
-        setLoginView(http, LoginView.class, "");
+        setLoginView(http, LoginView.class, "/");
     }
 
     @Override
