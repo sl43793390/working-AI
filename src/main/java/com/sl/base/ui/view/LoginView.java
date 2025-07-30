@@ -3,12 +3,10 @@ package com.sl.base.ui.view;
 import com.sl.entity.User;
 import com.sl.service.UserManageMentProcess;
 import com.sl.service.UserService;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.charts.themes.LumoLightTheme;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.login.LoginForm;
-import com.vaadin.flow.component.login.LoginI18n;
-import com.vaadin.flow.component.login.LoginOverlay;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -19,13 +17,12 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.spring.security.AuthenticationContext;
+import com.vaadin.flow.spring.security.VaadinWebSecurity;
+import com.vaadin.flow.theme.lumo.Lumo;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @AnonymousAllowed
@@ -42,9 +39,9 @@ public class LoginView extends Main implements BeforeEnterObserver {
                 LumoUtility.AlignItems.CENTER);
         setSizeFull();
         login = new LoginForm();
+        login.getStyle().set("background-color","blue");
         login.setAction("login");
         add(login);
-        setClassName(LumoUtility.Background.SUCCESS);
         login.addLoginListener(event -> {
 
             try {
@@ -80,7 +77,6 @@ public class LoginView extends Main implements BeforeEnterObserver {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
 //                    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 //                    authentication.setAuthenticated(true);
-
                 VaadinSession.getCurrent().setAttribute("user",user) ;
                 VaadinSession.getCurrent().setAttribute("userName", event.getUsername());
                 logger.info("用户{}登录成功", event.getUsername());
