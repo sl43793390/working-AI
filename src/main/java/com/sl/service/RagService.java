@@ -116,11 +116,7 @@ public class RagService {
     }
 
     public int deleteChatContent(String userId, String sessionId){
-        return chatMapper.delete(
-                new LambdaQueryWrapper<ChatContent>()
-                        .eq(ChatContent::getUserId, userId)
-                        .eq(ChatContent::getSessionId, sessionId)
-        );
+       return chatMapper.deleteByPrimaryKey(userId, sessionId);
     }
 
     public int insertChatContent(ChatContent chatContent){
@@ -133,12 +129,5 @@ public class RagService {
                         .eq(ChatContent::getSessionId, chatContent.getSessionId())
         );
     }
-    //删除单独一条会话记录
-    public int deleteChatContentBySessionId(String userId, String sessionId){
-        return chatMapper.delete(
-                new LambdaQueryWrapper<ChatContent>()
-                        .eq(ChatContent::getUserId, userId)
-                        .eq(ChatContent::getSessionId, sessionId)
-        );
-    }
+
 }

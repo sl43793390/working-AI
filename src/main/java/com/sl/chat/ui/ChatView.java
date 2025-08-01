@@ -415,7 +415,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
 
             QueryWrapper<ChatContent> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("session_id", contentChat.getSessionId());
-            ragService.deleteChatContentBySessionId(currentUser.getUserId(),contentChat.getSessionId());
+            ragService.deleteChatContent(currentUser.getUserId(),contentChat.getSessionId());
             ragService.insertChatContent(contentChat);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
