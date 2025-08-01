@@ -1,8 +1,9 @@
 package com.sl.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
+
 public class ChatContent {
     private String userId;
-
     private String sessionId;
 
     private String nameChat;

@@ -254,7 +254,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
                 //重新加载会话
                 loadUserSessions();
                 dialog.close();
-                Notification.show("用户删除成功").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+                Notification.show("会话删除成功").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
             }
         });
         Button cancelButton = new Button("取消", e -> dialog.close());
