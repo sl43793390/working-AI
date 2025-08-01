@@ -15,15 +15,12 @@ public interface ChatContentMapper extends BaseMapper<ChatContent> {
 
     int insertSelective(ChatContent record);
 
-    List<ChatContent> selectByExampleWithBLOBs(ChatContentExample example);
 
     List<ChatContent> selectByExample(ChatContentExample example);
 
     ChatContent selectByPrimaryKey(@Param("userId") String userId, @Param("sessionId") String sessionId);
 
     int updateByPrimaryKeySelective(ChatContent record);
-
-    int updateByPrimaryKeyWithBLOBs(ChatContent record);
 
     int updateByPrimaryKey(ChatContent record);
 }
