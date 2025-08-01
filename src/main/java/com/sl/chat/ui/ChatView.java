@@ -9,24 +9,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sl.base.ui.component.ViewToolbar;
 import com.sl.chat.ChatServiceGeneral;
 import com.sl.entity.ChatContent;
+import com.sl.entity.ChatMessage;
 import com.sl.entity.KnowledgeBase;
 import com.sl.entity.User;
-import com.sl.mapper.ChatMapper;
-import com.sl.entity.ChatMessage;
+import com.sl.mapper.ChatContentMapper;
 import com.sl.service.RagService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.messages.MessageListItem;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
@@ -52,9 +55,9 @@ public class ChatView extends Main implements BeforeEnterObserver {
     private final MessageInput messageInput;
     private final Scroller chatScroller;
     private final List<ChatSession> chatSessions;
+    private final RagService ragService;
     private ChatSession currentSession;
-    private final String currentUserId = "user1"; // 在实际应用中应该从安全上下文中获取
-    private ChatMapper chatMapper;
+
     // 添加文件上传组件
     private final Upload upload;
     private User currentUser;
@@ -63,13 +66,13 @@ public class ChatView extends Main implements BeforeEnterObserver {
     private ChatServiceGeneral chatService;
 
     @Autowired
-    public ChatView(ChatMapper chatMapper, ChatServiceGeneral chatService, RagService ragService) {
+    public ChatView(ChatServiceGeneral chatService, RagService ragService) {
         currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         if (null == currentUser){
             UI.getCurrent().navigate("login");
         }
+        this.ragService = ragService;
         this.chatService = chatService;
-        this.chatMapper = chatMapper;
         // 创建会话列表区域
         sessionsList = new VerticalLayout();
         sessionsList.addClassNames(LumoUtility.Padding.SMALL);
@@ -78,6 +81,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
 
         // 创建消息列表区域
         messageList = new MessageList();
+        messageList.setMarkdown(true);
         messageList.setSizeFull();
 
         // 创建可滚动的聊天区域
@@ -114,21 +118,14 @@ public class ChatView extends Main implements BeforeEnterObserver {
         HorizontalLayout uploadLayout = new HorizontalLayout();
         uploadLayout.add(upload);
         ComboBox<KnowledgeBase> knowledgeBaseComboBox = new ComboBox<>("选择知识库");
-        List<KnowledgeBase> basesByUserId = ragService.getKnowledgeBasesByUserId(currentUserId);
+        List<KnowledgeBase> basesByUserId = ragService.getKnowledgeBasesByUserId(currentUser.getUserId());
         knowledgeBaseComboBox.setItems(basesByUserId);
         knowledgeBaseComboBox.setItemLabelGenerator(KnowledgeBase::getNameBase);
         uploadLayout.add(knowledgeBaseComboBox);
         
         Button deleteSessionButton = new Button("删除会话");
-        deleteSessionButton.addClickListener(e -> {
-            if (currentSession != null) {
-                QueryWrapper<ChatContent> queryWrapper = new QueryWrapper<>();
-                queryWrapper.eq("user_id", currentUserId).eq("session_id", currentSession.getId());
-                chatMapper.delete(queryWrapper);
-                //重新加载会话
-                loadUserSessions();
-            }
-        });
+        deleteSessionButton.getStyle().set("margin-top", "30px");
+        deleteSessionButton.addClickListener(e -> openDeleteSessionDialog());
         uploadLayout.add(deleteSessionButton);
 
         // 创建右侧聊天区域
@@ -181,11 +178,9 @@ public class ChatView extends Main implements BeforeEnterObserver {
             UI.getCurrent().navigate("login");
             return;
         }
+        sessionsList.removeAll();
         // 查询当前用户的所有聊天记录
-        List<ChatContent> chatContents = chatMapper.selectList(
-            new LambdaQueryWrapper<ChatContent>()
-                .eq(ChatContent::getUserId, currentUser.getUserId())
-        );
+        List<ChatContent> chatContents = ragService.getChatContentByUserId(currentUser.getUserId());
         
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setTimeZone(TimeZone.getTimeZone(ZoneId.of("Asia/Shanghai")));
@@ -244,6 +239,29 @@ public class ChatView extends Main implements BeforeEnterObserver {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void openDeleteSessionDialog() {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("300px");
+        dialog.setHeight("150px");
+        dialog.setModal(true);
+        dialog.setHeaderTitle("删除会话");
+        Button confirmBtn = new Button("确定", e -> {
+            // 删除会话
+            if (currentSession != null) {
+                ragService.deleteChatContent(currentUser.getUserId(), currentSession.getId());
+                //重新加载会话
+                loadUserSessions();
+                dialog.close();
+                Notification.show("用户删除成功").addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+            }
+        });
+        Button cancelButton = new Button("取消", e -> dialog.close());
+        HorizontalLayout buttonLayout = new HorizontalLayout(confirmBtn, cancelButton);
+        buttonLayout.setSpacing(true);
+        dialog.add(buttonLayout);
+        dialog.open();
     }
 
     private void createNewSession() {
@@ -397,8 +415,8 @@ public class ChatView extends Main implements BeforeEnterObserver {
 
             QueryWrapper<ChatContent> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("session_id", contentChat.getSessionId());
-            chatMapper.delete(queryWrapper);
-            chatMapper.insert(contentChat);
+            ragService.deleteChatContentBySessionId(currentUser.getUserId(),contentChat.getSessionId());
+            ragService.insertChatContent(contentChat);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
