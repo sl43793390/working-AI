@@ -1,18 +1,20 @@
 package com.sl.entity;
 
 public class ChatContent {
-
     private String userId;
+
     private String sessionId;
-    private String content;
+
     private String nameChat;
+
+    private String content;
 
     public String getUserId() {
         return userId;
     }
 
     public void setUserId(String userId) {
-        this.userId = userId;
+        this.userId = userId == null ? null : userId.trim();
     }
 
     public String getSessionId() {
@@ -20,15 +22,7 @@ public class ChatContent {
     }
 
     public void setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
+        this.sessionId = sessionId == null ? null : sessionId.trim();
     }
 
     public String getNameChat() {
@@ -36,6 +30,14 @@ public class ChatContent {
     }
 
     public void setNameChat(String nameChat) {
-        this.nameChat = nameChat;
+        this.nameChat = nameChat == null ? null : nameChat.trim();
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content == null ? null : content.trim();
     }
 }
