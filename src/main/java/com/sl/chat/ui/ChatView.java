@@ -1,6 +1,7 @@
 package com.sl.chat.ui;
 
 import cn.hutool.core.date.DateUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -8,13 +9,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sl.base.ui.component.ViewToolbar;
 import com.sl.chat.ChatServiceGeneral;
 import com.sl.entity.ChatContent;
+import com.sl.entity.KnowledgeBase;
 import com.sl.entity.User;
 import com.sl.mapper.ChatMapper;
 import com.sl.entity.ChatMessage;
+import com.sl.service.RagService;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Main;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.messages.MessageInput;
 import com.vaadin.flow.component.messages.MessageList;
@@ -58,7 +63,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
     private ChatServiceGeneral chatService;
 
     @Autowired
-    public ChatView(ChatMapper chatMapper, ChatServiceGeneral chatService) {
+    public ChatView(ChatMapper chatMapper, ChatServiceGeneral chatService, RagService ragService) {
         currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         if (null == currentUser){
             UI.getCurrent().navigate("login");
@@ -86,7 +91,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
         upload.setMaxFiles(1);
         upload.setMaxFileSize(1024 * 1024 * 10);
         upload.setHeight("65px");
-        upload.setDropLabel(new com.vaadin.flow.component.html.Span("上传文件"));
+        upload.setDropLabel(new Span("上传文件"));
 
         // 创建消息输入区域
         messageInput = new MessageInput();
@@ -105,8 +110,29 @@ public class ChatView extends Main implements BeforeEnterObserver {
         leftPanel.addClassNames(LumoUtility.Padding.SMALL, LumoUtility.Gap.SMALL);
         leftPanel.addClassName(LumoUtility.Background.CONTRAST_10);
 
+//        上传文件按钮、选择知识库、删除会话按钮
+        HorizontalLayout uploadLayout = new HorizontalLayout();
+        uploadLayout.add(upload);
+        ComboBox<KnowledgeBase> knowledgeBaseComboBox = new ComboBox<>("选择知识库");
+        List<KnowledgeBase> basesByUserId = ragService.getKnowledgeBasesByUserId(currentUserId);
+        knowledgeBaseComboBox.setItems(basesByUserId);
+        knowledgeBaseComboBox.setItemLabelGenerator(KnowledgeBase::getNameBase);
+        uploadLayout.add(knowledgeBaseComboBox);
+        
+        Button deleteSessionButton = new Button("删除会话");
+        deleteSessionButton.addClickListener(e -> {
+            if (currentSession != null) {
+                QueryWrapper<ChatContent> queryWrapper = new QueryWrapper<>();
+                queryWrapper.eq("user_id", currentUserId).eq("session_id", currentSession.getId());
+                chatMapper.delete(queryWrapper);
+                //重新加载会话
+                loadUserSessions();
+            }
+        });
+        uploadLayout.add(deleteSessionButton);
+
         // 创建右侧聊天区域
-        VerticalLayout rightPanel = new VerticalLayout(chatScroller, processingIndicator,upload, messageInput);
+        VerticalLayout rightPanel = new VerticalLayout(chatScroller, processingIndicator,uploadLayout, messageInput);
         rightPanel.setSizeFull();
         rightPanel.setSpacing(true);
         rightPanel.setPadding(false);
@@ -157,7 +183,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
         }
         // 查询当前用户的所有聊天记录
         List<ChatContent> chatContents = chatMapper.selectList(
-            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<ChatContent>()
+            new LambdaQueryWrapper<ChatContent>()
                 .eq(ChatContent::getUserId, currentUser.getUserId())
         );
         
