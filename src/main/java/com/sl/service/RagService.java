@@ -1,9 +1,8 @@
 package com.sl.service;
 
-import com.sl.entity.KnowledgeBase;
-import com.sl.entity.KnowledgeBaseExample;
-import com.sl.entity.KnowledgeBaseFile;
-import com.sl.entity.KnowledgeBaseFileExample;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.sl.entity.*;
+import com.sl.mapper.ChatContentMapper;
 import com.sl.mapper.KnowledgeBaseFileMapper;
 import com.sl.mapper.KnowledgeBaseMapper;
 import jakarta.annotation.Resource;
@@ -19,7 +18,8 @@ public class RagService {
 
     @Resource
     private KnowledgeBaseFileMapper knowledgeBaseFileMapper;
-
+    @Resource
+    private ChatContentMapper chatMapper;
     /**
      * 根据用户ID获取知识库列表
      * @param userId 用户ID
@@ -105,5 +105,40 @@ public class RagService {
     public boolean deleteFileFromKnowledgeBase(String idBase,String fileName) {
         int result = knowledgeBaseFileMapper.deleteByPrimaryKey(idBase,fileName);
         return result > 0;
+    }
+
+    public List<ChatContent> getChatContentByUserId(String userId){
+        List<ChatContent> chatContents = chatMapper.selectList(
+                new LambdaQueryWrapper<ChatContent>()
+                        .eq(ChatContent::getUserId, userId)
+        );
+        return chatContents;
+    }
+
+    public int deleteChatContent(String userId, String sessionId){
+        return chatMapper.delete(
+                new LambdaQueryWrapper<ChatContent>()
+                        .eq(ChatContent::getUserId, userId)
+                        .eq(ChatContent::getSessionId, sessionId)
+        );
+    }
+
+    public int insertChatContent(ChatContent chatContent){
+        return chatMapper.insert(chatContent);
+    }
+    public int updateChatContent(ChatContent chatContent){
+        return chatMapper.update(chatContent,
+                new LambdaQueryWrapper<ChatContent>()
+                        .eq(ChatContent::getUserId, chatContent.getUserId())
+                        .eq(ChatContent::getSessionId, chatContent.getSessionId())
+        );
+    }
+    //删除单独一条会话记录
+    public int deleteChatContentBySessionId(String userId, String sessionId){
+        return chatMapper.delete(
+                new LambdaQueryWrapper<ChatContent>()
+                        .eq(ChatContent::getUserId, userId)
+                        .eq(ChatContent::getSessionId, sessionId)
+        );
     }
 }
