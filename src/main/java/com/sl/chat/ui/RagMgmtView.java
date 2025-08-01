@@ -62,6 +62,7 @@ public class RagMgmtView extends Composite<Div> {
     
     // 文件管理相关组件
     private KnowledgeBase selectedKnowledgeBase;
+    private RagFileMgmt ragFileMgmt;
 
     public RagMgmtView(RagService ragService) {
         this.ragService = ragService;
@@ -84,7 +85,9 @@ public class RagMgmtView extends Composite<Div> {
         
         // 创建文件管理标签页
         fileManagementTab = new Tab("文件管理");
-        tabSheet.add(fileManagementTab, createFileManagementTab());
+        ragFileMgmt = new RagFileMgmt(ragService, selectedKnowledgeBase);
+        ragFileMgmt.getStyle().set("height", "700px");
+        tabSheet.add(fileManagementTab, ragFileMgmt);
         
         // 默认选中知识库标签页
         tabSheet.setSelectedTab(knowledgeBaseTab);
@@ -93,6 +96,8 @@ public class RagMgmtView extends Composite<Div> {
                 if (selectedKnowledgeBase == null){
                     Notification.show("请选择一个知识库，点击管理文件进入", 3000, Notification.Position.MIDDLE);
                     tabSheet.setSelectedTab(knowledgeBaseTab);
+                } else {
+                    ragFileMgmt.updateSelectedKnowledgeBase(selectedKnowledgeBase);
                 }
             }
         });
@@ -148,6 +153,7 @@ public class RagMgmtView extends Composite<Div> {
             manageFilesBtn.addClickListener(e -> {
                 selectedKnowledgeBase = knowledgeBase;
                 tabSheet.setSelectedTab(fileManagementTab);
+                ragFileMgmt.updateSelectedKnowledgeBase(selectedKnowledgeBase);
             });
             
             actions.add(editBtn, deleteBtn, manageFilesBtn);
@@ -169,180 +175,6 @@ public class RagMgmtView extends Composite<Div> {
         
         content.add(layout);
         return content;
-    }
-    
-    private Div createFileManagementTab() {
-        Div content = new Div();
-        content.setSizeFull();
-        
-        VerticalLayout layout = new VerticalLayout();
-        layout.setSizeFull();
-        layout.setPadding(true);
-        layout.setSpacing(true);
-        
-        // 知识库名称标签
-        H3 kbNameLabel = new H3();
-        kbNameLabel.setVisible(false);
-        
-        // 分割线
-        Hr hr = new Hr();
-        hr.setVisible(false);
-        
-        // 文件上传区域
-        MultiFileMemoryBuffer buffer = new MultiFileMemoryBuffer();
-        Upload upload = new Upload(buffer);
-        upload.setDropLabel(new Span("点击或拖拽文件到此处上传"));
-        upload.setWidth("100%");
-        
-        // 文件列表表格
-        Grid<KnowledgeBaseFile> fileGrid = new Grid<>(KnowledgeBaseFile.class, false);
-        fileGrid.addColumn(KnowledgeBaseFile::getFileName).setHeader("文件名").setAutoWidth(true);
-        fileGrid.addColumn(KnowledgeBaseFile::getFileSize).setHeader("大小").setAutoWidth(true);
-        fileGrid.addColumn(file -> {
-            if (file.getDtUpload() != null) {
-                return file.getDtUpload().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            }
-            return "";
-        }).setHeader("上传时间").setAutoWidth(true);
-        fileGrid.addComponentColumn(file -> {
-            Button deleteBtn = new Button("删除");
-            deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-            deleteBtn.addClickListener(e -> deleteFile(file, fileGrid));
-            return deleteBtn;
-        }).setHeader("操作").setAutoWidth(true);
-        fileGrid.setSizeFull();
-        
-        // 添加上传完成监听器
-        upload.addSucceededListener(event -> {
-            String fileName = event.getFileName();
-            InputStream inputStream = buffer.getInputStream(fileName);
-            
-            try {
-                // 获取配置的存储路径
-                String basePath = System.getProperty("knowledge.base.path", "d:/tmp/knowledge");
-                File baseDir = new File(basePath);
-                if (!baseDir.exists()) {
-                    baseDir.mkdirs();
-                }
-                
-                // 创建用户目录
-                File userDir = new File(baseDir, currentUser.getUserId());
-                if (!userDir.exists()) {
-                    userDir.mkdirs();
-                }
-                
-                // 创建知识库目录
-                File kbDir = new File(userDir, selectedKnowledgeBase.getIdBase());
-                if (!kbDir.exists()) {
-                    kbDir.mkdirs();
-                }
-                
-                // 保存文件到磁盘
-                File savedFile = new File(kbDir, fileName);
-                try (FileOutputStream fos = new FileOutputStream(savedFile)) {
-                    inputStream.transferTo(fos);
-                }
-                
-                // 保存文件信息到数据库
-                KnowledgeBaseFile kbFile = new KnowledgeBaseFile();
-                kbFile.setIdBase(selectedKnowledgeBase.getIdBase());
-                kbFile.setFileName(fileName);
-                kbFile.setFilePath(savedFile.getAbsolutePath());
-                kbFile.setFileSize(String.format("%.2f KB", savedFile.length() / 1024.0));
-                kbFile.setDtUpload(new java.util.Date());
-                
-                if (ragService.addFileToKnowledgeBase(kbFile)) {
-                    Notification.show("文件上传成功", 3000, Notification.Position.TOP_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    refreshFileGrid(fileGrid);
-                } else {
-                    Notification.show("文件信息保存失败", 3000, Notification.Position.TOP_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                    // 删除已保存的文件
-                    savedFile.delete();
-                }
-            } catch (IOException e) {
-                Notification.show("文件上传失败: " + e.getMessage(), 3000, Notification.Position.TOP_CENTER)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-        });
-
-        layout.add(kbNameLabel, hr, upload, fileGrid);
-        layout.expand(fileGrid);
-        
-        content.add(layout);
-        
-        // 监听标签页切换事件
-        tabSheet.addSelectedChangeListener(e -> {
-            if (e.getSelectedTab() == fileManagementTab) {
-                if (selectedKnowledgeBase != null) {
-                    kbNameLabel.setText("知识库: " + selectedKnowledgeBase.getNameBase());
-                    kbNameLabel.setVisible(true);
-                    hr.setVisible(true);
-                    refreshFileGrid(fileGrid);
-                } else {
-                    kbNameLabel.setVisible(false);
-                    hr.setVisible(false);
-                    fileGrid.setItems(List.of());
-                }
-            }
-        });
-        
-        return content;
-    }
-
-    private void refreshFileGrid(Grid<KnowledgeBaseFile> fileGrid) {
-        if (selectedKnowledgeBase != null) {
-            List<KnowledgeBaseFile> files = ragService.getFilesByKnowledgeBaseId(selectedKnowledgeBase.getIdBase());
-            fileGrid.setItems(files);
-        }
-    }
-
-    private void deleteFile(KnowledgeBaseFile file, Grid<KnowledgeBaseFile> fileGrid) {
-        Dialog confirmDialog = new Dialog();
-        confirmDialog.setHeaderTitle("确认删除");
-        
-        VerticalLayout layout = new VerticalLayout();
-        layout.setPadding(true);
-        layout.setSpacing(true);
-        
-        layout.add(new Span("确定要删除文件 \"" + file.getFileName() + "\" 吗？"));
-        
-        Button confirmBtn = new Button("确认", e -> {
-            try {
-                // 从磁盘删除文件
-                File diskFile = new File(file.getFilePath());
-                if (diskFile.exists()) {
-                    diskFile.delete();
-                }
-                
-                // 从数据库删除记录
-                // 注意：这里需要修改为根据文件ID删除，而不是知识库ID
-                if (ragService.deleteFileFromKnowledgeBase(file.getIdBase(),file.getFileName())) {
-                    Notification.show("文件删除成功", 3000, Notification.Position.TOP_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-                    refreshFileGrid(fileGrid);
-                } else {
-                    Notification.show("文件删除失败", 3000, Notification.Position.TOP_CENTER)
-                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
-                }
-            } catch (Exception ex) {
-                Notification.show("文件删除异常: " + ex.getMessage(), 3000, Notification.Position.TOP_CENTER)
-                        .addThemeVariants(NotificationVariant.LUMO_ERROR);
-            }
-            confirmDialog.close();
-        });
-        confirmBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        
-        Button cancelBtn = new Button("取消", e -> confirmDialog.close());
-        
-        HorizontalLayout buttonLayout = new HorizontalLayout(confirmBtn, cancelBtn);
-        buttonLayout.setSpacing(true);
-        
-        layout.add(buttonLayout);
-        confirmDialog.add(layout);
-        confirmDialog.open();
     }
     
     private void loadKnowledgeBases() {
