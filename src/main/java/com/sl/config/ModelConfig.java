@@ -8,12 +8,17 @@ import dev.langchain4j.store.memory.chat.InMemoryChatMemoryStore;
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
 import io.milvus.param.IndexType;
 import io.milvus.param.MetricType;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class ModelConfig {
+public class ModelConfig implements ApplicationContextAware {
 
+    public static ApplicationContext appcationContext;
 
     @Bean
     public ChatMemoryProvider chatMemoryProvider() {
@@ -38,14 +43,14 @@ public class ModelConfig {
     public static MilvusEmbeddingStore milvusEmbeddingStore(String collectionName, Integer dimension){
         MilvusEmbeddingStore store = MilvusEmbeddingStore.builder()
 
-                .host("192.168.80.152")                         // Host for Milvus instance
-                .port(19530)                               // Port for Milvus instance
+                .host(appcationContext.getEnvironment().getProperty("working.ai.milvus.host"))                         // Host for Milvus instance
+                .port(Integer.parseInt(appcationContext.getEnvironment().getProperty("working.ai.milvus.port")))                               // Port for Milvus instance
                 .collectionName(collectionName)      // Name of the collection
                 .dimension(dimension)                            // Dimension of vectors
                 .indexType(IndexType.FLAT)                 // Index type
                 .metricType(MetricType.COSINE)             // Metric type
-                .username("username")                      // Username for Milvus
-                .password("password")                      // Password for Milvus
+                .username(appcationContext.getEnvironment().getProperty("working.ai.milvus.username"))                      // Username for Milvus
+                .password(appcationContext.getEnvironment().getProperty("working.ai.milvus.password"))                      // Password for Milvus
                 .consistencyLevel(ConsistencyLevelEnum.EVENTUALLY)  // Consistency level
                 .autoFlushOnInsert(true)                   // Auto flush after insert
                 .idFieldName("id")                         // ID field name
@@ -54,5 +59,10 @@ public class ModelConfig {
                 .vectorFieldName("vector")                 // Vector field name
                 .build();                                  // Build the MilvusEmbeddingStore instance
         return store;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.appcationContext = applicationContext;
     }
 }

@@ -181,7 +181,6 @@ public class RagService {
                 throw new RuntimeException(e);
             }
             document = Document.from(text);
-
         }else {
             document = FileSystemDocumentLoader.loadDocument(file.getFilePath());
         }
