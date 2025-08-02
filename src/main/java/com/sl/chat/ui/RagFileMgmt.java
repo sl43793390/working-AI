@@ -199,18 +199,13 @@ public class RagFileMgmt extends Composite<Div> {
         Span progressLabel = new Span("正在处理...");
         progressDialog.add(progressBar, progressLabel);
         progressDialog.open();
-        new Thread(() -> {
+//        new Thread(() -> {
             ragService.embedFile(currentUser.getUserId(),file,selectedKnowledgeBase);
-            progressDialog.close();
-        }).start();
-        //关闭dialog时调用
-        progressDialog.addDialogCloseActionListener(e -> {
+//        }).start();
             progressDialog.close();
             refreshFileGrid();
-            updateDisplay();
             Notification.show("嵌入完成", 3000, Notification.Position.TOP_CENTER)
                     .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
-        });
     }
     public void updateSelectedKnowledgeBase(KnowledgeBase knowledgeBase) {
         this.selectedKnowledgeBase = knowledgeBase;

@@ -17,6 +17,10 @@ import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
@@ -157,7 +161,7 @@ public class RagService {
         if (knowledgeBase.getSegmentLength() != null && knowledgeBase.getSegmentOverlap() != null){
             documentSplitter = DocumentSplitters.recursive(knowledgeBase.getSegmentLength(), knowledgeBase.getSegmentOverlap());
         }else{
-            documentSplitter = DocumentSplitters.recursive(500, 100);
+            documentSplitter = DocumentSplitters.recursive(2000, 200);
         }
         //3. 创建向量存储
         EmbeddingStoreIngestor embeddingStoreIngestor = EmbeddingStoreIngestor.builder()
@@ -168,7 +172,19 @@ public class RagService {
                 .build();
         //此处还需要做一些精细的处理，针对不同类型的文件使用不同的解析器，目前统一使用DocumentSplitters，TODO
         logger.info("file path:"+file.getFilePath());
-        Document document = FileSystemDocumentLoader.loadDocument(file.getFilePath());
+        String text = null;
+        Document document = null;
+        if (file.getFilePath().endsWith(".txt") || file.getFilePath().endsWith(".md")){
+            try {
+                text = Files.readString(Paths.get(file.getFilePath()), StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            document = Document.from(text);
+
+        }else {
+            document = FileSystemDocumentLoader.loadDocument(file.getFilePath());
+        }
         List<Document> documentList = Collections.singletonList(document);
         file.setFlagEmbedding("Y");
         IngestionResult ingestionResult = embeddingStoreIngestor.ingest(documentList);

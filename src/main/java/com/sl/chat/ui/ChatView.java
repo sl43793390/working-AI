@@ -357,14 +357,19 @@ public class ChatView extends Main implements BeforeEnterObserver {
                     .build();
             KnowledgeBase knowledgeBase = knowledgeBaseComboBox.getValue();
             List<EmbeddingMatch<TextSegment>> matches = ModelConfig.milvusEmbeddingStore(knowledgeBase.getNameCollection(),1024).search(embeddingSearchRequest).matches();
-            EmbeddingMatch<TextSegment> embeddingMatch = matches.get(0);
+//            EmbeddingMatch<TextSegment> embeddingMatch = matches.getFirst();
+            StringBuffer  text = new StringBuffer();
+            for (EmbeddingMatch<TextSegment> match : matches){
+                TextSegment textSegment = match.embedded();
+                text.append(textSegment.text());
+            }
 
             StringBuilder userInputText =new StringBuilder();
             userInputText.append("根据以下内容回答用户问题：,如果可以找到答案就尽量参考引文回答问题，如果无法找到答案就回答：当前问题未在知识库中找到答案。");
+            userInputText.append("知识库内容：\n");
+            userInputText.append(text);
             userInputText.append("用户问题：\n");
             userInputText.append(userMessageText);
-            userInputText.append("知识库内容：\n");
-            userInputText.append(embeddingMatch.embedded().text());
             String response = chatService.chat(currentSession.getId(), userInputText.toString());
 
             MessageListItem aiMessage = new MessageListItem(
