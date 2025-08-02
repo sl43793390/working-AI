@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sl.base.ui.component.ViewToolbar;
 import com.sl.chat.ChatServiceGeneral;
+import com.sl.config.ModelConfig;
 import com.sl.entity.ChatContent;
 import com.sl.entity.ChatMessage;
 import com.sl.entity.KnowledgeBase;
@@ -34,6 +35,11 @@ import com.vaadin.flow.component.upload.Upload;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
 import com.vaadin.flow.theme.lumo.LumoUtility;
+import dev.langchain4j.data.embedding.Embedding;
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,6 +62,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
     private final Scroller chatScroller;
     private final List<ChatSession> chatSessions;
     private final RagService ragService;
+    private final ComboBox<KnowledgeBase> knowledgeBaseComboBox;
     private ChatSession currentSession;
 
     // 添加文件上传组件
@@ -64,15 +71,17 @@ public class ChatView extends Main implements BeforeEnterObserver {
     // 添加AI处理中的进度条组件
     private ProgressBar processingIndicator;
     private ChatServiceGeneral chatService;
+    private EmbeddingModel embeddingModel;
 
     @Autowired
-    public ChatView(ChatServiceGeneral chatService, RagService ragService) {
+    public ChatView(ChatServiceGeneral chatService, RagService ragService, EmbeddingModel embeddingModel) {
         currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         if (null == currentUser){
             UI.getCurrent().navigate("login");
         }
         this.ragService = ragService;
         this.chatService = chatService;
+        this.embeddingModel = embeddingModel;
         // 创建会话列表区域
         sessionsList = new VerticalLayout();
         sessionsList.addClassNames(LumoUtility.Padding.SMALL);
@@ -117,7 +126,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
 //        上传文件按钮、选择知识库、删除会话按钮
         HorizontalLayout uploadLayout = new HorizontalLayout();
         uploadLayout.add(upload);
-        ComboBox<KnowledgeBase> knowledgeBaseComboBox = new ComboBox<>("选择知识库");
+        knowledgeBaseComboBox = new ComboBox<>("选择知识库");
         List<KnowledgeBase> basesByUserId = ragService.getKnowledgeBasesByUserId(currentUser.getUserId());
         knowledgeBaseComboBox.setItems(basesByUserId);
         knowledgeBaseComboBox.setItemLabelGenerator(KnowledgeBase::getNameBase);
@@ -339,8 +348,51 @@ public class ChatView extends Main implements BeforeEnterObserver {
         // 显示AI处理中进度条
         processingIndicator.setVisible(true);
         messageInput.setEnabled(false);
+        //判断用户是否勾选知识库，如果勾选则添加使用embedding模型嵌入用户输入内容，使用embeddingStore查询相似内容，将返回相似结果和用户问题一并提交给大模型
+        if (knowledgeBaseComboBox.getValue() != null){
+            Embedding queryEmbedding = embeddingModel.embed(userMessageText.trim()).content();
+            EmbeddingSearchRequest embeddingSearchRequest = EmbeddingSearchRequest.builder()
+                    .queryEmbedding(queryEmbedding)
+                    .maxResults(3)
+                    .build();
+            KnowledgeBase knowledgeBase = knowledgeBaseComboBox.getValue();
+            List<EmbeddingMatch<TextSegment>> matches = ModelConfig.milvusEmbeddingStore(knowledgeBase.getNameCollection(),1024).search(embeddingSearchRequest).matches();
+            EmbeddingMatch<TextSegment> embeddingMatch = matches.get(0);
+
+            StringBuilder userInputText =new StringBuilder();
+            userInputText.append("根据以下内容回答用户问题：,如果可以找到答案就尽量参考引文回答问题，如果无法找到答案就回答：当前问题未在知识库中找到答案。");
+            userInputText.append("用户问题：\n");
+            userInputText.append(userMessageText);
+            userInputText.append("知识库内容：\n");
+            userInputText.append(embeddingMatch.embedded().text());
+            String response = chatService.chat(currentSession.getId(), userInputText.toString());
+
+            MessageListItem aiMessage = new MessageListItem(
+                    response,
+                    Instant.now(),
+                    "AI Assistant"
+            );
+
+            // 在UI线程中更新界面
+//                getUI().ifPresent(ui -> ui.access(() -> {
+            // 移除进度条并添加AI消息
+            currentSession.addMessage(aiMessage);
+
+            // 更新消息列表
+            messageList.setItems(currentSession.getMessages());
+
+            // 隐藏处理中提示
+            processingIndicator.setVisible(false);
+            messageInput.setEnabled(true);
+
+            // 滚动到底部
+            scrollToBottom();
+            return;
+//            System.out.println(embeddingMatch.score()); // 0.8144287765026093
+//            System.out.println(embeddingMatch.embedded().text()); // I like football.
+        }
         
-        // 模拟AI回复延迟（实际应用中这里会调用AI API）
+        // 用户未选择知识库
             try {
                 // 模拟AI处理时间（实际应用中这里会调用OpenAIChatModel.chat()）
                 String response = chatService.chat(currentSession.getId(), userMessageText);
