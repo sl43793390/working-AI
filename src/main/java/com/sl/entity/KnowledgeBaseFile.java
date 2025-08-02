@@ -5,13 +5,15 @@ import java.util.Date;
 public class KnowledgeBaseFile {
     private String idBase;
 
-    private String filePath;
-
     private String fileName;
+
+    private String filePath;
 
     private String fileSize;
 
     private Date dtUpload;
+
+    private String flagEmbedding;
 
     public String getIdBase() {
         return idBase;
@@ -21,20 +23,20 @@ public class KnowledgeBaseFile {
         this.idBase = idBase == null ? null : idBase.trim();
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath == null ? null : filePath.trim();
-    }
-
     public String getFileName() {
         return fileName;
     }
 
     public void setFileName(String fileName) {
         this.fileName = fileName == null ? null : fileName.trim();
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath == null ? null : filePath.trim();
     }
 
     public String getFileSize() {
@@ -51,5 +53,13 @@ public class KnowledgeBaseFile {
 
     public void setDtUpload(Date dtUpload) {
         this.dtUpload = dtUpload;
+    }
+
+    public String getFlagEmbedding() {
+        return flagEmbedding;
+    }
+
+    public void setFlagEmbedding(String flagEmbedding) {
+        this.flagEmbedding = flagEmbedding == null ? null : flagEmbedding.trim();
     }
 }

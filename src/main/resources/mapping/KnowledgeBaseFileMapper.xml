@@ -7,6 +7,7 @@
     <result column="FILE_PATH" property="filePath" jdbcType="VARCHAR" />
     <result column="FILE_SIZE" property="fileSize" jdbcType="VARCHAR" />
     <result column="DT_UPLOAD" property="dtUpload" jdbcType="TIMESTAMP" />
+    <result column="FLAG_EMBEDDING" property="flagEmbedding" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -38,7 +39,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    ID_BASE, FILE_NAME, FILE_PATH, FILE_SIZE, DT_UPLOAD
+    ID_BASE, FILE_NAME, FILE_PATH, FILE_SIZE, DT_UPLOAD, FLAG_EMBEDDING
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.KnowledgeBaseFileExample" >
     select
@@ -75,9 +76,11 @@
   </delete>
   <insert id="insert" parameterType="com.sl.entity.KnowledgeBaseFile" >
     insert into knowledge_base_file (ID_BASE, FILE_NAME, FILE_PATH, 
-      FILE_SIZE, DT_UPLOAD)
+      FILE_SIZE, DT_UPLOAD, FLAG_EMBEDDING
+      )
     values (#{idBase,jdbcType=VARCHAR}, #{fileName,jdbcType=VARCHAR}, #{filePath,jdbcType=VARCHAR}, 
-      #{fileSize,jdbcType=VARCHAR}, #{dtUpload,jdbcType=TIMESTAMP})
+      #{fileSize,jdbcType=VARCHAR}, #{dtUpload,jdbcType=TIMESTAMP}, #{flagEmbedding,jdbcType=VARCHAR}
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.sl.entity.KnowledgeBaseFile" >
     insert into knowledge_base_file
@@ -97,6 +100,9 @@
       <if test="dtUpload != null" >
         DT_UPLOAD,
       </if>
+      <if test="flagEmbedding != null" >
+        FLAG_EMBEDDING,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="idBase != null" >
@@ -114,6 +120,9 @@
       <if test="dtUpload != null" >
         #{dtUpload,jdbcType=TIMESTAMP},
       </if>
+      <if test="flagEmbedding != null" >
+        #{flagEmbedding,jdbcType=VARCHAR},
+      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.KnowledgeBaseFile" >
@@ -128,6 +137,9 @@
       <if test="dtUpload != null" >
         DT_UPLOAD = #{dtUpload,jdbcType=TIMESTAMP},
       </if>
+      <if test="flagEmbedding != null" >
+        FLAG_EMBEDDING = #{flagEmbedding,jdbcType=VARCHAR},
+      </if>
     </set>
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
       and FILE_NAME = #{fileName,jdbcType=VARCHAR}
@@ -136,7 +148,8 @@
     update knowledge_base_file
     set FILE_PATH = #{filePath,jdbcType=VARCHAR},
       FILE_SIZE = #{fileSize,jdbcType=VARCHAR},
-      DT_UPLOAD = #{dtUpload,jdbcType=TIMESTAMP}
+      DT_UPLOAD = #{dtUpload,jdbcType=TIMESTAMP},
+      FLAG_EMBEDDING = #{flagEmbedding,jdbcType=VARCHAR}
     where ID_BASE = #{idBase,jdbcType=VARCHAR}
       and FILE_NAME = #{fileName,jdbcType=VARCHAR}
   </update>

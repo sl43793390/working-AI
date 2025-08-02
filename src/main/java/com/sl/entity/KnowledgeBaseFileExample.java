@@ -175,76 +175,6 @@ public class KnowledgeBaseFileExample {
             return (Criteria) this;
         }
 
-        public Criteria andFilePathIsNull() {
-            addCriterion("FILE_PATH is null");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathIsNotNull() {
-            addCriterion("FILE_PATH is not null");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathEqualTo(String value) {
-            addCriterion("FILE_PATH =", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotEqualTo(String value) {
-            addCriterion("FILE_PATH <>", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathGreaterThan(String value) {
-            addCriterion("FILE_PATH >", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathGreaterThanOrEqualTo(String value) {
-            addCriterion("FILE_PATH >=", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathLessThan(String value) {
-            addCriterion("FILE_PATH <", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathLessThanOrEqualTo(String value) {
-            addCriterion("FILE_PATH <=", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathLike(String value) {
-            addCriterion("FILE_PATH like", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotLike(String value) {
-            addCriterion("FILE_PATH not like", value, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathIn(List<String> values) {
-            addCriterion("FILE_PATH in", values, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotIn(List<String> values) {
-            addCriterion("FILE_PATH not in", values, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathBetween(String value1, String value2) {
-            addCriterion("FILE_PATH between", value1, value2, "filePath");
-            return (Criteria) this;
-        }
-
-        public Criteria andFilePathNotBetween(String value1, String value2) {
-            addCriterion("FILE_PATH not between", value1, value2, "filePath");
-            return (Criteria) this;
-        }
-
         public Criteria andFileNameIsNull() {
             addCriterion("FILE_NAME is null");
             return (Criteria) this;
@@ -312,6 +242,76 @@ public class KnowledgeBaseFileExample {
 
         public Criteria andFileNameNotBetween(String value1, String value2) {
             addCriterion("FILE_NAME not between", value1, value2, "fileName");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathIsNull() {
+            addCriterion("FILE_PATH is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathIsNotNull() {
+            addCriterion("FILE_PATH is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathEqualTo(String value) {
+            addCriterion("FILE_PATH =", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathNotEqualTo(String value) {
+            addCriterion("FILE_PATH <>", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathGreaterThan(String value) {
+            addCriterion("FILE_PATH >", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathGreaterThanOrEqualTo(String value) {
+            addCriterion("FILE_PATH >=", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathLessThan(String value) {
+            addCriterion("FILE_PATH <", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathLessThanOrEqualTo(String value) {
+            addCriterion("FILE_PATH <=", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathLike(String value) {
+            addCriterion("FILE_PATH like", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathNotLike(String value) {
+            addCriterion("FILE_PATH not like", value, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathIn(List<String> values) {
+            addCriterion("FILE_PATH in", values, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathNotIn(List<String> values) {
+            addCriterion("FILE_PATH not in", values, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathBetween(String value1, String value2) {
+            addCriterion("FILE_PATH between", value1, value2, "filePath");
+            return (Criteria) this;
+        }
+
+        public Criteria andFilePathNotBetween(String value1, String value2) {
+            addCriterion("FILE_PATH not between", value1, value2, "filePath");
             return (Criteria) this;
         }
 
@@ -442,6 +442,76 @@ public class KnowledgeBaseFileExample {
 
         public Criteria andDtUploadNotBetween(Date value1, Date value2) {
             addCriterion("DT_UPLOAD not between", value1, value2, "dtUpload");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingIsNull() {
+            addCriterion("FLAG_EMBEDDING is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingIsNotNull() {
+            addCriterion("FLAG_EMBEDDING is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingEqualTo(String value) {
+            addCriterion("FLAG_EMBEDDING =", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingNotEqualTo(String value) {
+            addCriterion("FLAG_EMBEDDING <>", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingGreaterThan(String value) {
+            addCriterion("FLAG_EMBEDDING >", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingGreaterThanOrEqualTo(String value) {
+            addCriterion("FLAG_EMBEDDING >=", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingLessThan(String value) {
+            addCriterion("FLAG_EMBEDDING <", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingLessThanOrEqualTo(String value) {
+            addCriterion("FLAG_EMBEDDING <=", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingLike(String value) {
+            addCriterion("FLAG_EMBEDDING like", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingNotLike(String value) {
+            addCriterion("FLAG_EMBEDDING not like", value, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingIn(List<String> values) {
+            addCriterion("FLAG_EMBEDDING in", values, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingNotIn(List<String> values) {
+            addCriterion("FLAG_EMBEDDING not in", values, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingBetween(String value1, String value2) {
+            addCriterion("FLAG_EMBEDDING between", value1, value2, "flagEmbedding");
+            return (Criteria) this;
+        }
+
+        public Criteria andFlagEmbeddingNotBetween(String value1, String value2) {
+            addCriterion("FLAG_EMBEDDING not between", value1, value2, "flagEmbedding");
             return (Criteria) this;
         }
     }
