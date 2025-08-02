@@ -1,13 +1,23 @@
 package com.sl.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.sl.config.ModelConfig;
 import com.sl.entity.*;
 import com.sl.mapper.ChatContentMapper;
 import com.sl.mapper.KnowledgeBaseFileMapper;
 import com.sl.mapper.KnowledgeBaseMapper;
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
+import dev.langchain4j.store.embedding.IngestionResult;
 import jakarta.annotation.Resource;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -20,6 +30,9 @@ public class RagService {
     private KnowledgeBaseFileMapper knowledgeBaseFileMapper;
     @Resource
     private ChatContentMapper chatMapper;
+    @Resource
+    private OpenAiEmbeddingModel embeddingModel;
+    Logger logger = org.slf4j.LoggerFactory.getLogger(RagService.class);
     /**
      * 根据用户ID获取知识库列表
      * @param userId 用户ID
@@ -130,4 +143,36 @@ public class RagService {
         );
     }
 
+    /**
+     * 1. 使用DocumentSplitters对文档进行分割，maxsegmentSize和maxoverlapSize参数来设置分割参数。这两个参数来自knowledge_base表中的参数。
+     *
+     * @param userId
+     * @param file
+     * @param selectedKnowledgeBase
+     * @return
+     */
+    public IngestionResult embedFile(String userId, KnowledgeBaseFile file, KnowledgeBase selectedKnowledgeBase) {
+        KnowledgeBase knowledgeBase = knowledgeBaseMapper.selectByPrimaryKey(userId, selectedKnowledgeBase.getNameBase());
+        DocumentSplitter documentSplitter = null;
+        if (knowledgeBase.getSegmentLength() != null && knowledgeBase.getSegmentOverlap() != null){
+            documentSplitter = DocumentSplitters.recursive(knowledgeBase.getSegmentLength(), knowledgeBase.getSegmentOverlap());
+        }else{
+            documentSplitter = DocumentSplitters.recursive(500, 100);
+        }
+        //3. 创建向量存储
+        EmbeddingStoreIngestor embeddingStoreIngestor = EmbeddingStoreIngestor.builder()
+                .embeddingStore(ModelConfig.milvusEmbeddingStore(selectedKnowledgeBase.getNameCollection(),1024))
+                .documentSplitter(documentSplitter)
+                .embeddingModel(embeddingModel)
+//                .textSplitter(new CharacterTextSplitter("\\n"))
+                .build();
+        //此处还需要做一些精细的处理，针对不同类型的文件使用不同的解析器，目前统一使用DocumentSplitters，TODO
+        logger.info("file path:"+file.getFilePath());
+        Document document = FileSystemDocumentLoader.loadDocument(file.getFilePath());
+        List<Document> documentList = Collections.singletonList(document);
+        file.setFlagEmbedding("Y");
+        IngestionResult ingestionResult = embeddingStoreIngestor.ingest(documentList);
+        knowledgeBaseFileMapper.updateByPrimaryKey(file);
+        return ingestionResult;
+    }
 }

@@ -22,6 +22,7 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
@@ -60,7 +61,7 @@ public class RagFileMgmt extends Composite<Div> {
         if (null == currentUser){
             UI.getCurrent().navigate("login");
         }
-        
+
         // 初始化UI组件
         initView();
     }
@@ -70,7 +71,7 @@ public class RagFileMgmt extends Composite<Div> {
         layout.setSizeFull();
         layout.setPadding(true);
         layout.setSpacing(true);
-        
+
         // 知识库名称标签
         kbNameLabel = new H3();
         kbNameLabel.setVisible(false);
@@ -102,6 +103,18 @@ public class RagFileMgmt extends Composite<Div> {
             deleteBtn.addClickListener(e -> deleteFile(file));
             return deleteBtn;
         }).setHeader("操作").setAutoWidth(true);
+        //添加一列：名称为嵌入，该列是按钮，点击按钮则后台开始解析该文件，解析完将结果调用embedding模型将结果存入milvus数据库中
+        fileGrid.addComponentColumn(file -> {
+            //判断文件是否已经嵌入，则按钮显示已经嵌入
+            Button embedBtn = new Button("开始嵌入");
+            if (file.getFlagEmbedding().equals("Y")) {
+                embedBtn = new Button("已经嵌入");
+                embedBtn.setEnabled(false);
+            }
+            embedBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            embedBtn.addClickListener(e -> embedFile(file));
+            return embedBtn;
+        }).setHeader("嵌入").setAutoWidth(true);;
         fileGrid.setSizeFull();
         
         // 添加上传完成监听器
@@ -142,6 +155,7 @@ public class RagFileMgmt extends Composite<Div> {
                 kbFile.setFilePath(savedFile.getAbsolutePath());
                 kbFile.setFileSize(String.format("%.2f KB", savedFile.length() / 1024.0));
                 kbFile.setDtUpload(new java.util.Date());
+                kbFile.setFlagEmbedding("N");
                 
                 if (ragService.addFileToKnowledgeBase(kbFile)) {
                     Notification.show("文件上传成功", 3000, Notification.Position.TOP_CENTER)
@@ -168,7 +182,36 @@ public class RagFileMgmt extends Composite<Div> {
         updateDisplay();
         refreshFileGrid();
     }
-    
+
+    private void embedFile(KnowledgeBaseFile file) {
+        // 创建一个对话框，用于显示进度
+        Dialog progressDialog = new Dialog();
+        progressDialog.setCloseOnEsc(false);
+        progressDialog.setCloseOnOutsideClick(false);
+
+        // 创建一个进度条
+        ProgressBar progressBar = new ProgressBar();
+        progressBar.setMin(0);
+        progressBar.setMax(100);
+        progressBar.setValue(0);
+
+        // 创建一个标签，用于显示进度信息
+        Span progressLabel = new Span("正在处理...");
+        progressDialog.add(progressBar, progressLabel);
+        progressDialog.open();
+        new Thread(() -> {
+            ragService.embedFile(currentUser.getUserId(),file,selectedKnowledgeBase);
+            progressDialog.close();
+        }).start();
+        //关闭dialog时调用
+        progressDialog.addDialogCloseActionListener(e -> {
+            progressDialog.close();
+            refreshFileGrid();
+            updateDisplay();
+            Notification.show("嵌入完成", 3000, Notification.Position.TOP_CENTER)
+                    .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
+        });
+    }
     public void updateSelectedKnowledgeBase(KnowledgeBase knowledgeBase) {
         this.selectedKnowledgeBase = knowledgeBase;
         updateDisplay();
