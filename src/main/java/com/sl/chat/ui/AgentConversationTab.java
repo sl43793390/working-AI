@@ -80,8 +80,7 @@ public class AgentConversationTab extends VerticalLayout {
     }
     
     private void initLayout() {
-        setWidthFull();
-        setHeightFull();
+        setSizeFull();
         setPadding(true);
         setSpacing(true);
         
@@ -333,22 +332,26 @@ public class AgentConversationTab extends VerticalLayout {
         }
         
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.setTimeZone(TimeZone.getTimeZone(ZoneId.of("Asia/Shanghai")));
+            ObjectMapperSingleton.getInstance().setTimeZone(TimeZone.getTimeZone(ZoneId.of("Asia/Shanghai")));
 
             List<ChatMessage> chatMessages = new ArrayList<>();
             
             // 将MessageListItem转换为ChatMessage
             for (MessageListItem item : currentSession.getMessages()) {
-                ChatMessage chatMessage = new ChatMessage(item.getText(), DateUtil.toLocalDateTime(item.getTime()), item.getUserName());
-                chatMessages.add(chatMessage);
+                if (item.getUserName().startsWith("AI")){
+                    ChatMessage chatMessage = new ChatMessage(item.getText(), DateUtil.toLocalDateTime(item.getTime()), "AI");
+                    chatMessages.add(chatMessage);
+                }else {
+                    ChatMessage chatMessage = new ChatMessage(item.getText(), DateUtil.toLocalDateTime(item.getTime()), "user");
+                    chatMessages.add(chatMessage);
+                }
             }
             
-            String jsonChatMessage = objectMapper.writeValueAsString(chatMessages);
+            String jsonChatMessage = ObjectMapperSingleton.getInstance().writeValueAsString(chatMessages);
             AgentMemory contentChat = new AgentMemory();
             contentChat.setUserId(currentUser.getUserId());
             contentChat.setSessionId(currentSession.getId());
-//            contentChat.setNameChat(currentSession.getName());
+            contentChat.setNameChat(currentSession.getName());
             contentChat.setContent(jsonChatMessage);
 
             // 检查会话是否已存在
@@ -372,7 +375,7 @@ public class AgentConversationTab extends VerticalLayout {
         
         // 弹出确认对话框
         Dialog confirmDialog = new Dialog();
-        confirmDialog.setWidth("400px");
+        confirmDialog.setWidth("25%");
         confirmDialog.setCloseOnEsc(false);
         confirmDialog.setCloseOnOutsideClick(false);
         
@@ -401,7 +404,7 @@ public class AgentConversationTab extends VerticalLayout {
                 
                 // 如果还有其他会话，切换到第一个会话
                 if (!chatSessions.isEmpty()) {
-                    switchToSession(chatSessions.get(0));
+                    switchToSession(chatSessions.getFirst());
                 } else {
                     // 如果没有其他会话，创建一个新会话
                     createNewSession();
@@ -445,6 +448,11 @@ public class AgentConversationTab extends VerticalLayout {
             currentSession.setName(sessionName);
             updateSessionButton(currentSession);
         }
+        // 将当前会话中的所有消息都添加到userMessageText中，提交到agent中
+        StringBuffer buf = new StringBuffer();
+        currentSession.getMessages().forEach(message -> buf.append(message.getUserName()).append(message.getText()).append(System.lineSeparator()));
+        buf.append("请根据历史对话回答用户问题：");
+        buf.append(System.lineSeparator());
 
         // 添加用户消息
         MessageListItem userMessage = new MessageListItem(
@@ -463,7 +471,7 @@ public class AgentConversationTab extends VerticalLayout {
             String response;
             if (reActAgent != null) {
                 // 使用ReActAgent处理用户消息
-                response = reActAgent.run(userMessageText);
+                response = reActAgent.run(buf +userMessageText);
             } else {
                 // 使用基本的ChatService处理用户消息
                 ChatServiceGeneral chatService = AiServices.builder(ChatServiceGeneral.class)
@@ -472,25 +480,22 @@ public class AgentConversationTab extends VerticalLayout {
             }
 
             // 在UI线程中更新界面
-            UI ui = UI.getCurrent();
-            if (ui != null) {
-                MessageListItem aiMessage = new MessageListItem(
-                        response,
-                        Instant.now(),
-                        "AI Assistant"
-                );
-                // 添加AI消息
-                currentSession.addMessage(aiMessage);
-                // 更新消息列表
-                messageList.setItems(currentSession.getMessages());
-                // 隐藏处理中提示
-                processingIndicator.setVisible(false);
-                messageInput.setEnabled(true);
-                // 滚动到底部
-                scrollToBottom();
-                // 保存会话
-                saveCurrentSession();
-            }
+            MessageListItem aiMessage = new MessageListItem(
+                    response,
+                    Instant.now(),
+                    "AI Assistant"
+            );
+            // 添加AI消息
+            currentSession.addMessage(aiMessage);
+            // 更新消息列表
+            messageList.setItems(currentSession.getMessages());
+            // 隐藏处理中提示
+            processingIndicator.setVisible(false);
+            messageInput.setEnabled(true);
+            // 滚动到底部
+            scrollToBottom();
+            // 保存会话
+            saveCurrentSession();
         } catch (Exception e) {
             e.printStackTrace();
             // 确保在异常情况下也能恢复UI状态
