@@ -3,6 +3,7 @@ package com.sl.service;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.sl.config.ModelConfig;
 import com.sl.entity.*;
+import com.sl.mapper.AgentMemoryMapper;
 import com.sl.mapper.ChatContentMapper;
 import com.sl.mapper.KnowledgeBaseFileMapper;
 import com.sl.mapper.KnowledgeBaseMapper;
@@ -34,6 +35,8 @@ public class RagService {
     private KnowledgeBaseFileMapper knowledgeBaseFileMapper;
     @Resource
     private ChatContentMapper chatMapper;
+    @Resource
+    private AgentMemoryMapper agentMemoryMapper;
     @Resource
     private OpenAiEmbeddingModel embeddingModel;
     Logger logger = org.slf4j.LoggerFactory.getLogger(RagService.class);
@@ -130,6 +133,14 @@ public class RagService {
                         .eq(ChatContent::getUserId, userId)
         );
         return chatContents;
+    }
+
+    public List<AgentMemory> getAgentMemoryByUserId(String userId){
+        List<AgentMemory> agentMemories = agentMemoryMapper.selectList(
+                new LambdaQueryWrapper<AgentMemory>()
+                        .eq(AgentMemory::getUserId, userId)
+        );
+        return agentMemories;
     }
 
     public int deleteChatContent(String userId, String sessionId){

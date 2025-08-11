@@ -5,6 +5,8 @@ public class AgentMemory {
 
     private String sessionId;
 
+    private String nameChat;
+
     private String role;
 
     private String content;
@@ -23,6 +25,14 @@ public class AgentMemory {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId == null ? null : sessionId.trim();
+    }
+
+    public String getNameChat() {
+        return nameChat;
+    }
+
+    public void setNameChat(String nameChat) {
+        this.nameChat = nameChat == null ? null : nameChat.trim();
     }
 
     public String getRole() {

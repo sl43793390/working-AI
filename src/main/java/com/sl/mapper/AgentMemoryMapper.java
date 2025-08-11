@@ -1,11 +1,12 @@
 package com.sl.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sl.entity.AgentMemory;
 import com.sl.entity.AgentMemoryExample;
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
-public interface AgentMemoryMapper {
+public interface AgentMemoryMapper extends BaseMapper<AgentMemory> {
     int deleteByExample(AgentMemoryExample example);
 
     int deleteByPrimaryKey(@Param("userId") String userId, @Param("sessionId") String sessionId);

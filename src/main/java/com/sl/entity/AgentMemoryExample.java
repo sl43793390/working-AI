@@ -244,6 +244,76 @@ public class AgentMemoryExample {
             return (Criteria) this;
         }
 
+        public Criteria andNameChatIsNull() {
+            addCriterion("name_chat is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatIsNotNull() {
+            addCriterion("name_chat is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatEqualTo(String value) {
+            addCriterion("name_chat =", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatNotEqualTo(String value) {
+            addCriterion("name_chat <>", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatGreaterThan(String value) {
+            addCriterion("name_chat >", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatGreaterThanOrEqualTo(String value) {
+            addCriterion("name_chat >=", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatLessThan(String value) {
+            addCriterion("name_chat <", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatLessThanOrEqualTo(String value) {
+            addCriterion("name_chat <=", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatLike(String value) {
+            addCriterion("name_chat like", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatNotLike(String value) {
+            addCriterion("name_chat not like", value, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatIn(List<String> values) {
+            addCriterion("name_chat in", values, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatNotIn(List<String> values) {
+            addCriterion("name_chat not in", values, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatBetween(String value1, String value2) {
+            addCriterion("name_chat between", value1, value2, "nameChat");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameChatNotBetween(String value1, String value2) {
+            addCriterion("name_chat not between", value1, value2, "nameChat");
+            return (Criteria) this;
+        }
+
         public Criteria andRoleIsNull() {
             addCriterion("role is null");
             return (Criteria) this;

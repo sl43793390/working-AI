@@ -4,6 +4,7 @@
   <resultMap id="BaseResultMap" type="com.sl.entity.AgentMemory" >
     <id column="user_id" property="userId" jdbcType="VARCHAR" />
     <id column="session_id" property="sessionId" jdbcType="VARCHAR" />
+    <result column="name_chat" property="nameChat" jdbcType="VARCHAR" />
     <result column="role" property="role" jdbcType="VARCHAR" />
   </resultMap>
   <resultMap id="ResultMapWithBLOBs" type="com.sl.entity.AgentMemory" extends="BaseResultMap" >
@@ -39,7 +40,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    user_id, session_id, role
+    user_id, session_id, name_chat, role
   </sql>
   <sql id="Blob_Column_List" >
     content
@@ -97,10 +98,10 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.sl.entity.AgentMemory" >
-    insert into agent_memory (user_id, session_id, role, 
-      content)
-    values (#{userId,jdbcType=VARCHAR}, #{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, 
-      #{content,jdbcType=LONGVARCHAR})
+    insert into agent_memory (user_id, session_id, name_chat, 
+      role, content)
+    values (#{userId,jdbcType=VARCHAR}, #{sessionId,jdbcType=VARCHAR}, #{nameChat,jdbcType=VARCHAR}, 
+      #{role,jdbcType=VARCHAR}, #{content,jdbcType=LONGVARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.sl.entity.AgentMemory" >
     insert into agent_memory
@@ -110,6 +111,9 @@
       </if>
       <if test="sessionId != null" >
         session_id,
+      </if>
+      <if test="nameChat != null" >
+        name_chat,
       </if>
       <if test="role != null" >
         role,
@@ -125,6 +129,9 @@
       <if test="sessionId != null" >
         #{sessionId,jdbcType=VARCHAR},
       </if>
+      <if test="nameChat != null" >
+        #{nameChat,jdbcType=VARCHAR},
+      </if>
       <if test="role != null" >
         #{role,jdbcType=VARCHAR},
       </if>
@@ -136,6 +143,9 @@
   <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.AgentMemory" >
     update agent_memory
     <set >
+      <if test="nameChat != null" >
+        name_chat = #{nameChat,jdbcType=VARCHAR},
+      </if>
       <if test="role != null" >
         role = #{role,jdbcType=VARCHAR},
       </if>
@@ -148,14 +158,16 @@
   </update>
   <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.sl.entity.AgentMemory" >
     update agent_memory
-    set role = #{role,jdbcType=VARCHAR},
+    set name_chat = #{nameChat,jdbcType=VARCHAR},
+      role = #{role,jdbcType=VARCHAR},
       content = #{content,jdbcType=LONGVARCHAR}
     where user_id = #{userId,jdbcType=VARCHAR}
       and session_id = #{sessionId,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.sl.entity.AgentMemory" >
     update agent_memory
-    set role = #{role,jdbcType=VARCHAR}
+    set name_chat = #{nameChat,jdbcType=VARCHAR},
+      role = #{role,jdbcType=VARCHAR}
     where user_id = #{userId,jdbcType=VARCHAR}
       and session_id = #{sessionId,jdbcType=VARCHAR}
   </update>
