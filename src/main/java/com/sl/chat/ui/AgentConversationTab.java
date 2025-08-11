@@ -10,15 +10,13 @@ import com.sl.chat.tool.Tool;
 import com.sl.chat.tool.ToolExecutor;
 import com.sl.config.ModelConfig;
 import com.sl.entity.AgentMemory;
-import com.sl.entity.ChatContent;
 import com.sl.entity.ChatMessage;
 import com.sl.entity.User;
 import com.sl.entity.UserAgent;
 import com.sl.mapper.AgentMemoryMapper;
-import com.sl.mapper.ChatContentMapper;
 import com.sl.service.RagService;
+import com.sl.util.ObjectMapperSingleton;
 import com.vaadin.flow.component.UI;
-import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -33,9 +31,9 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.progressbar.ProgressBar;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.server.VaadinSession;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.time.ZoneId;
@@ -78,6 +76,7 @@ public class AgentConversationTab extends VerticalLayout {
         this.openAiChatModel = ModelConfig.appcationContext.getBean(ChatModel.class);
         this.currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         chatSessions = new ArrayList<>();
+        initLayout();
     }
     
     private void initLayout() {
@@ -104,13 +103,14 @@ public class AgentConversationTab extends VerticalLayout {
         // 创建可滚动的聊天区域
         chatScroller = new Scroller(messageList);
         chatScroller.setSizeFull();
+        chatScroller.addClassNames(LumoUtility.Background.CONTRAST_5);
         
         // 创建消息输入区域
         messageInput = new MessageInput();
         messageInput.setHeight("100px");
         messageInput.addSubmitListener(this::onMessageSubmit);
         messageInput.setWidthFull();
-        
+
         // 创建AI处理中进度条组件
         processingIndicator = new ProgressBar();
         processingIndicator.setIndeterminate(true);
@@ -119,12 +119,11 @@ public class AgentConversationTab extends VerticalLayout {
         // 创建删除会话按钮
         deleteSessionButton = new Button("删除当前会话");
         deleteSessionButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        deleteSessionButton.setWidthFull();
-        deleteSessionButton.setEnabled(false);
+        deleteSessionButton.getStyle().set("margin-left", "20px");
         deleteSessionButton.addClickListener(e -> deleteCurrentSession());
         
         // 主聊天区域布局
-        VerticalLayout chatLayout = new VerticalLayout(chatScroller, processingIndicator, messageInput);
+        VerticalLayout chatLayout = new VerticalLayout(chatScroller, processingIndicator,deleteSessionButton, messageInput);
         chatLayout.setSizeFull();
         chatLayout.setSpacing(true);
         chatLayout.setPadding(false);
@@ -142,16 +141,20 @@ public class AgentConversationTab extends VerticalLayout {
         // 左侧会话列表区域
         VerticalLayout leftPanel = new VerticalLayout();
         leftPanel.setWidth("260px");
-        leftPanel.add(newSessionButton, deleteSessionButton, sessionsList);
+        leftPanel.add(newSessionButton, sessionsList);
         leftPanel.setSpacing(true);
+        leftPanel.addClassName(LumoUtility.Background.CONTRAST_10);
         
         // 主布局
         HorizontalLayout mainLayout = new HorizontalLayout(leftPanel, chatLayout);
         mainLayout.setHeight("95%");
+        mainLayout.setWidth("100%");
         mainLayout.setSpacing(false);
         mainLayout.setPadding(false);
         mainLayout.setFlexGrow(1, chatLayout);
-        
+        // 设置主视图属性
+        setSizeFull();
+        addClassNames(LumoUtility.Display.FLEX, LumoUtility.FlexDirection.COLUMN);
         add(mainLayout);
         expand(mainLayout);
     }
@@ -213,17 +216,16 @@ public class AgentConversationTab extends VerticalLayout {
         chatSessions.clear();
         
         // 查询当前用户和当前Agent的所有聊天记录
-        List<ChatContent> chatContents = ragService.getChatContentByUserId(currentUser.getUserId());
+        List<AgentMemory> chatContents = ragService.getAgentMemoryByUserId(currentUser.getUserId());
         
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setTimeZone(TimeZone.getTimeZone(ZoneId.of("Asia/Shanghai")));
+        ObjectMapperSingleton.getInstance().setTimeZone(TimeZone.getTimeZone(ZoneId.of("Asia/Shanghai")));
         
         int i = 0;
         // 遍历聊天记录，创建会话按钮
-        for (ChatContent content : chatContents) {
+        for (AgentMemory content : chatContents) {
             try {
                 // 解析JSON内容
-                List<ChatMessage> chatMessages = objectMapper.readValue(content.getContent(), new TypeReference<List<ChatMessage>>() {});
+                List<ChatMessage> chatMessages = ObjectMapperSingleton.getInstance().readValue(content.getContent(), new TypeReference<List<ChatMessage>>() {});
                 
                 // 创建会话
                 ChatSession session = new ChatSession(content.getNameChat() == null? "历史会话":content.getNameChat(), content.getSessionId());
@@ -244,7 +246,7 @@ public class AgentConversationTab extends VerticalLayout {
                 if (content.getNameChat() != null){
                     session.setName(content.getNameChat());
                 } else if (!messageItems.isEmpty()) {
-                    String firstMessage = messageItems.get(0).getText();
+                    String firstMessage = messageItems.getFirst().getText();
                     String sessionName = firstMessage.length() > 8 ? firstMessage.substring(0, 8) : firstMessage;
                     session.setName(sessionName);
                 } else {
@@ -370,6 +372,7 @@ public class AgentConversationTab extends VerticalLayout {
         
         // 弹出确认对话框
         Dialog confirmDialog = new Dialog();
+        confirmDialog.setWidth("400px");
         confirmDialog.setCloseOnEsc(false);
         confirmDialog.setCloseOnOutsideClick(false);
         
@@ -456,71 +459,57 @@ public class AgentConversationTab extends VerticalLayout {
         messageInput.setEnabled(false);
         
         // 在后台线程中处理AI响应
-        new Thread(() -> {
-            try {
-                String response;
-                if (reActAgent != null) {
-                    // 使用ReActAgent处理用户消息
-                    response = reActAgent.run(userMessageText);
-                } else {
-                    // 使用基本的ChatService处理用户消息
-                    ChatServiceGeneral chatService = AiServices.builder(ChatServiceGeneral.class)
-                            .build();
-                    response = chatService.chat(currentSession.getId(), userMessageText);
-                }
-
-                // 在UI线程中更新界面
-                UI ui = UI.getCurrent();
-                if (ui != null) {
-                    ui.access(() -> {
-                        MessageListItem aiMessage = new MessageListItem(
-                                response,
-                                Instant.now(),
-                                "AI Assistant"
-                        );
-                        
-                        // 添加AI消息
-                        currentSession.addMessage(aiMessage);
-                        
-                        // 更新消息列表
-                        messageList.setItems(currentSession.getMessages());
-                        
-                        // 隐藏处理中提示
-                        processingIndicator.setVisible(false);
-                        messageInput.setEnabled(true);
-                        
-                        // 滚动到底部
-                        scrollToBottom();
-                        
-                        // 保存会话
-                        saveCurrentSession();
-                    });
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                // 确保在异常情况下也能恢复UI状态
-                UI ui = UI.getCurrent();
-                if (ui != null) {
-                    ui.access(() -> {
-                        // 添加错误消息
-                        MessageListItem errorMessage = new MessageListItem(
-                                "处理消息时发生错误: " + e.getMessage(),
-                                Instant.now(),
-                                "System"
-                        );
-                        currentSession.addMessage(errorMessage);
-                        messageList.setItems(currentSession.getMessages());
-                        
-                        // 隐藏处理中提示
-                        processingIndicator.setVisible(false);
-                        messageInput.setEnabled(true);
-                        
-                        // 滚动到底部
-                        scrollToBottom();
-                    });
-                }
+        try {
+            String response;
+            if (reActAgent != null) {
+                // 使用ReActAgent处理用户消息
+                response = reActAgent.run(userMessageText);
+            } else {
+                // 使用基本的ChatService处理用户消息
+                ChatServiceGeneral chatService = AiServices.builder(ChatServiceGeneral.class)
+                        .build();
+                response = chatService.chat(currentSession.getId(), userMessageText);
             }
-        }).start();
+
+            // 在UI线程中更新界面
+            UI ui = UI.getCurrent();
+            if (ui != null) {
+                MessageListItem aiMessage = new MessageListItem(
+                        response,
+                        Instant.now(),
+                        "AI Assistant"
+                );
+                // 添加AI消息
+                currentSession.addMessage(aiMessage);
+                // 更新消息列表
+                messageList.setItems(currentSession.getMessages());
+                // 隐藏处理中提示
+                processingIndicator.setVisible(false);
+                messageInput.setEnabled(true);
+                // 滚动到底部
+                scrollToBottom();
+                // 保存会话
+                saveCurrentSession();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // 确保在异常情况下也能恢复UI状态
+            // 添加错误消息
+            MessageListItem errorMessage = new MessageListItem(
+                    "处理消息时发生错误: " + e.getMessage(),
+                    Instant.now(),
+                    "System"
+            );
+            currentSession.addMessage(errorMessage);
+            messageList.setItems(currentSession.getMessages());
+
+            // 隐藏处理中提示
+            processingIndicator.setVisible(false);
+            messageInput.setEnabled(true);
+
+            // 滚动到底部
+            scrollToBottom();
+        }
     }
     
     private void updateSessionButton(ChatSession session) {
@@ -585,10 +574,5 @@ public class AgentConversationTab extends VerticalLayout {
             this.messages.addAll(messages);
         }
     }
-    
-    // 在组件附加到UI时初始化布局
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        initLayout();
-    }
+
 }

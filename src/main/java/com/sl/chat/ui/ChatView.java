@@ -159,6 +159,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
         // 创建主布局
         HorizontalLayout mainLayout = new HorizontalLayout(leftPanel, rightPanel);
         mainLayout.setHeight("95%");
+        mainLayout.setWidth("100%");
         mainLayout.setSpacing(false);
         mainLayout.setPadding(false);
         mainLayout.setFlexGrow(1, rightPanel);
@@ -219,7 +220,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
                 if (content.getNameChat() != null){
                     session.setName(content.getNameChat());
                 }else if (!messageItems.isEmpty()) {
-                    String firstMessage = messageItems.get(0).getText();
+                    String firstMessage = messageItems.getFirst().getText();
                     String sessionName = firstMessage.length() > 8 ? firstMessage.substring(0, 8) : firstMessage;
                     session.setName(sessionName);
                 } else {
