@@ -1,33 +1,33 @@
 package com.sl.chat.memory;
 
 import java.util.*;
-import java.sql.Timestamp;
 
 import com.sl.config.ModelConfig;
-import com.sl.entity.ChatMemory;
+import com.sl.entity.AgentMemory;
+import com.sl.entity.AgentMemoryExample;
 import com.sl.entity.ChatMemoryExample;
-import com.sl.mapper.ChatMemoryMapper;
+import com.sl.mapper.AgentMemoryMapper;
 import org.springframework.context.ApplicationContext;
 
 public class MySQLMemory implements Memory {
-    private ChatMemoryMapper chatMemoryMapper;
+    private AgentMemoryMapper chatMemoryMapper;
     private String sessionId;
     private int maxMessages = 10;
 
     public MySQLMemory() {
         ApplicationContext context = ModelConfig.appcationContext;
-        this.chatMemoryMapper = context.getBean(ChatMemoryMapper.class);
+        this.chatMemoryMapper = context.getBean(AgentMemoryMapper.class);
     }
 
     public MySQLMemory(String sessionId) {
         this.sessionId = sessionId;
         ApplicationContext context = ModelConfig.appcationContext;
-        this.chatMemoryMapper = context.getBean(ChatMemoryMapper.class);
+        this.chatMemoryMapper = context.getBean(AgentMemoryMapper.class);
     }
 
     @Override
     public void add(String role, String content) {
-        ChatMemory chatMemory = new ChatMemory();
+        AgentMemory chatMemory = new AgentMemory();
         chatMemory.setSessionId(sessionId);
         chatMemory.setRole(role);
         chatMemory.setContent(content);
@@ -47,14 +47,14 @@ public class MySQLMemory implements Memory {
     @Override
     public List<MemoryMessage> getMessages() {
         // 构造查询条件，根据sessionId查找聊天记录并按ID升序排序
-        ChatMemoryExample example = new ChatMemoryExample();
+        AgentMemoryExample example = new AgentMemoryExample();
         example.createCriteria().andSessionIdEqualTo(sessionId);
         example.setOrderByClause("id ASC"); // 假设存在自增ID列用于排序
-        List<ChatMemory> chatMemories = chatMemoryMapper.selectByExampleWithBLOBs(example);
+        List<AgentMemory> chatMemories = chatMemoryMapper.selectByExampleWithBLOBs(example);
 
         // 转换ChatMemory实体为MemoryMessage对象
         List<MemoryMessage> result = new ArrayList<>();
-        for (ChatMemory chatMemory : chatMemories) {
+        for (AgentMemory chatMemory : chatMemories) {
             MemoryMessage msg = new MemoryMessage();
             msg.setRole(chatMemory.getRole());
             msg.setContent(chatMemory.getContent());
@@ -76,7 +76,7 @@ public class MySQLMemory implements Memory {
 
     @Override
     public void clear() {
-        ChatMemoryExample example = new ChatMemoryExample();
+        AgentMemoryExample example = new AgentMemoryExample();
         example.createCriteria().andSessionIdEqualTo(sessionId);
         chatMemoryMapper.deleteByExample(example);
     }
@@ -89,9 +89,9 @@ public class MySQLMemory implements Memory {
 
     @Override
     public int size() {
-        ChatMemoryExample example = new ChatMemoryExample();
+        AgentMemoryExample example = new AgentMemoryExample();
         example.createCriteria().andSessionIdEqualTo(sessionId);
-        List<ChatMemory> chatMemories = chatMemoryMapper.selectByExample(example);
+        List<AgentMemory> chatMemories = chatMemoryMapper.selectByExample(example);
         return chatMemories.size();
     }
 
@@ -101,9 +101,9 @@ public class MySQLMemory implements Memory {
     private void pruneToMaxSize() {
         if (maxMessages <= 0) return;
 //        去除旧的消息
-                ChatMemoryExample example = new ChatMemoryExample();
+                AgentMemoryExample example = new AgentMemoryExample();
                 example.createCriteria().andSessionIdEqualTo(sessionId);
-                List<ChatMemory> chatMemories = chatMemoryMapper.selectByExample(example);
+                List<AgentMemory> chatMemories = chatMemoryMapper.selectByExample(example);
                 if (chatMemories.size() > maxMessages) {
                     chatMemoryMapper.deleteByExample(example);
 //                    将最新的maxMessages条消息插入数据库

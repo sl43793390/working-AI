@@ -1,11 +1,21 @@
 package com.sl.entity;
 
-public class ChatMemory {
+public class AgentMemory {
+    private String userId;
+
     private String sessionId;
 
     private String role;
 
     private String content;
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId == null ? null : userId.trim();
+    }
 
     public String getSessionId() {
         return sessionId;

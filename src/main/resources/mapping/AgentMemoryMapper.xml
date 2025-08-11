@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.sl.mapper.ChatMemoryMapper" >
-  <resultMap id="BaseResultMap" type="com.sl.entity.ChatMemory" >
+<mapper namespace="com.sl.mapper.AgentMemoryMapper" >
+  <resultMap id="BaseResultMap" type="com.sl.entity.AgentMemory" >
+    <id column="user_id" property="userId" jdbcType="VARCHAR" />
     <id column="session_id" property="sessionId" jdbcType="VARCHAR" />
     <result column="role" property="role" jdbcType="VARCHAR" />
   </resultMap>
-  <resultMap id="ResultMapWithBLOBs" type="com.sl.entity.ChatMemory" extends="BaseResultMap" >
+  <resultMap id="ResultMapWithBLOBs" type="com.sl.entity.AgentMemory" extends="BaseResultMap" >
     <result column="content" property="content" jdbcType="LONGVARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -38,12 +39,12 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    session_id, role
+    user_id, session_id, role
   </sql>
   <sql id="Blob_Column_List" >
     content
   </sql>
-  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.sl.entity.ChatMemoryExample" >
+  <select id="selectByExampleWithBLOBs" resultMap="ResultMapWithBLOBs" parameterType="com.sl.entity.AgentMemoryExample" >
     select
     <if test="distinct" >
       distinct
@@ -52,7 +53,7 @@
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
-    from chat_memory
+    from agent_memory
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -60,14 +61,14 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.ChatMemoryExample" >
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.AgentMemoryExample" >
     select
     <if test="distinct" >
       distinct
     </if>
     'false' as QUERYID,
     <include refid="Base_Column_List" />
-    from chat_memory
+    from agent_memory
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
@@ -75,33 +76,38 @@
       order by ${orderByClause}
     </if>
   </select>
-  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.String" >
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="map" >
     select 
     <include refid="Base_Column_List" />
     ,
     <include refid="Blob_Column_List" />
-    from chat_memory
-    where session_id = #{sessionId,jdbcType=VARCHAR}
+    from agent_memory
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and session_id = #{sessionId,jdbcType=VARCHAR}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String" >
-    delete from chat_memory
-    where session_id = #{sessionId,jdbcType=VARCHAR}
+  <delete id="deleteByPrimaryKey" parameterType="map" >
+    delete from agent_memory
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and session_id = #{sessionId,jdbcType=VARCHAR}
   </delete>
-  <delete id="deleteByExample" parameterType="com.sl.entity.ChatMemoryExample" >
-    delete from chat_memory
+  <delete id="deleteByExample" parameterType="com.sl.entity.AgentMemoryExample" >
+    delete from agent_memory
     <if test="_parameter != null" >
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="com.sl.entity.ChatMemory" >
-    insert into chat_memory (session_id, role, content
-      )
-    values (#{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, #{content,jdbcType=LONGVARCHAR}
-      )
+  <insert id="insert" parameterType="com.sl.entity.AgentMemory" >
+    insert into agent_memory (user_id, session_id, role, 
+      content)
+    values (#{userId,jdbcType=VARCHAR}, #{sessionId,jdbcType=VARCHAR}, #{role,jdbcType=VARCHAR}, 
+      #{content,jdbcType=LONGVARCHAR})
   </insert>
-  <insert id="insertSelective" parameterType="com.sl.entity.ChatMemory" >
-    insert into chat_memory
+  <insert id="insertSelective" parameterType="com.sl.entity.AgentMemory" >
+    insert into agent_memory
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        user_id,
+      </if>
       <if test="sessionId != null" >
         session_id,
       </if>
@@ -113,6 +119,9 @@
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
       <if test="sessionId != null" >
         #{sessionId,jdbcType=VARCHAR},
       </if>
@@ -124,8 +133,8 @@
       </if>
     </trim>
   </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.ChatMemory" >
-    update chat_memory
+  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.AgentMemory" >
+    update agent_memory
     <set >
       <if test="role != null" >
         role = #{role,jdbcType=VARCHAR},
@@ -134,17 +143,20 @@
         content = #{content,jdbcType=LONGVARCHAR},
       </if>
     </set>
-    where session_id = #{sessionId,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and session_id = #{sessionId,jdbcType=VARCHAR}
   </update>
-  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.sl.entity.ChatMemory" >
-    update chat_memory
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.sl.entity.AgentMemory" >
+    update agent_memory
     set role = #{role,jdbcType=VARCHAR},
       content = #{content,jdbcType=LONGVARCHAR}
-    where session_id = #{sessionId,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and session_id = #{sessionId,jdbcType=VARCHAR}
   </update>
-  <update id="updateByPrimaryKey" parameterType="com.sl.entity.ChatMemory" >
-    update chat_memory
+  <update id="updateByPrimaryKey" parameterType="com.sl.entity.AgentMemory" >
+    update agent_memory
     set role = #{role,jdbcType=VARCHAR}
-    where session_id = #{sessionId,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and session_id = #{sessionId,jdbcType=VARCHAR}
   </update>
 </mapper>
