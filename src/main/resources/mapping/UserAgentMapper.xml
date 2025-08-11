@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sl.mapper.UserAgentMapper" >
+  <resultMap id="BaseResultMap" type="com.sl.entity.UserAgent" >
+    <id column="user_id" property="userId" jdbcType="VARCHAR" />
+    <id column="id_agent" property="idAgent" jdbcType="VARCHAR" />
+    <result column="name_agent" property="nameAgent" jdbcType="VARCHAR" />
+    <result column="system_prompt" property="systemPrompt" jdbcType="VARCHAR" />
+    <result column="cd_desc" property="cdDesc" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    user_id, id_agent, name_agent, system_prompt, cd_desc
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.UserAgentExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'false' as QUERYID,
+    <include refid="Base_Column_List" />
+    from user_agent
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="map" >
+    select 
+    <include refid="Base_Column_List" />
+    from user_agent
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_agent = #{idAgent,jdbcType=VARCHAR}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="map" >
+    delete from user_agent
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_agent = #{idAgent,jdbcType=VARCHAR}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.sl.entity.UserAgentExample" >
+    delete from user_agent
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="com.sl.entity.UserAgent" >
+    insert into user_agent (user_id, id_agent, name_agent, 
+      system_prompt, cd_desc)
+    values (#{userId,jdbcType=VARCHAR}, #{idAgent,jdbcType=VARCHAR}, #{nameAgent,jdbcType=VARCHAR}, 
+      #{systemPrompt,jdbcType=VARCHAR}, #{cdDesc,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.sl.entity.UserAgent" >
+    insert into user_agent
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        user_id,
+      </if>
+      <if test="idAgent != null" >
+        id_agent,
+      </if>
+      <if test="nameAgent != null" >
+        name_agent,
+      </if>
+      <if test="systemPrompt != null" >
+        system_prompt,
+      </if>
+      <if test="cdDesc != null" >
+        cd_desc,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userId != null" >
+        #{userId,jdbcType=VARCHAR},
+      </if>
+      <if test="idAgent != null" >
+        #{idAgent,jdbcType=VARCHAR},
+      </if>
+      <if test="nameAgent != null" >
+        #{nameAgent,jdbcType=VARCHAR},
+      </if>
+      <if test="systemPrompt != null" >
+        #{systemPrompt,jdbcType=VARCHAR},
+      </if>
+      <if test="cdDesc != null" >
+        #{cdDesc,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.UserAgent" >
+    update user_agent
+    <set >
+      <if test="nameAgent != null" >
+        name_agent = #{nameAgent,jdbcType=VARCHAR},
+      </if>
+      <if test="systemPrompt != null" >
+        system_prompt = #{systemPrompt,jdbcType=VARCHAR},
+      </if>
+      <if test="cdDesc != null" >
+        cd_desc = #{cdDesc,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_agent = #{idAgent,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.sl.entity.UserAgent" >
+    update user_agent
+    set name_agent = #{nameAgent,jdbcType=VARCHAR},
+      system_prompt = #{systemPrompt,jdbcType=VARCHAR},
+      cd_desc = #{cdDesc,jdbcType=VARCHAR}
+    where user_id = #{userId,jdbcType=VARCHAR}
+      and id_agent = #{idAgent,jdbcType=VARCHAR}
+  </update>
+</mapper>

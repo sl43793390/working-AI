@@ -1,6 +1,32 @@
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : 192.168.80.151-vmware
+ Source Server Type    : MySQL
+ Source Server Version : 80402
+ Source Host           : 192.168.80.151:3306
+ Source Schema         : chat_ai
+
+ Target Server Type    : MySQL
+ Target Server Version : 80402
+ File Encoding         : 65001
+
+ Date: 11/08/2025 14:46:08
+*/
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
+
+-- ----------------------------
+-- Table structure for agent_tool
+-- ----------------------------
+DROP TABLE IF EXISTS `agent_tool`;
+CREATE TABLE `agent_tool`  (
+  `id_agent` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name_tool` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name_mcp` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  PRIMARY KEY (`id_agent`, `name_tool`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for chat_content
@@ -12,6 +38,18 @@ CREATE TABLE `chat_content`  (
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
   `name_chat` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`user_id`, `session_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for chat_memory
+-- ----------------------------
+DROP TABLE IF EXISTS `chat_memory`;
+CREATE TABLE `chat_memory`  (
+  `session_id` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `role` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
+  `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL,
+  `timestamp` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`session_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
@@ -36,13 +74,6 @@ CREATE TABLE `knowledge_base`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of knowledge_base
--- ----------------------------
-INSERT INTO `knowledge_base` VALUES ('2a9d2cb36d7044fe8bfd47135d1d857b', 'test', '121212121', 'admin', NULL, 'admin1', '', NULL, '', '向量', NULL, NULL, NULL);
-INSERT INTO `knowledge_base` VALUES ('9b6b70923a0d4df3af2e0bb81bcdede0', 'test22', '222', 'admin', NULL, 'admin2', 'milvus', NULL, 'qwen', '向量', NULL, NULL, NULL);
-INSERT INTO `knowledge_base` VALUES ('c7e157147ce74a3586456269b28ae5c3', 'test222', '3222', 'admin', NULL, 'admin3', '2222', NULL, '', '向量', NULL, NULL, NULL);
-
--- ----------------------------
 -- Table structure for knowledge_base_file
 -- ----------------------------
 DROP TABLE IF EXISTS `knowledge_base_file`;
@@ -55,7 +86,6 @@ CREATE TABLE `knowledge_base_file`  (
   `FLAG_EMBEDDING` varchar(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '是否已嵌入',
   PRIMARY KEY (`ID_BASE`, `FILE_NAME`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
 
 -- ----------------------------
 -- Table structure for menu
@@ -101,14 +131,6 @@ CREATE TABLE `prompt_category`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of prompt_category
--- ----------------------------
-INSERT INTO `prompt_category` VALUES ('admin', '2bb00d24-536f-46c0-bca2-e805f279c7cd', 'python代码1');
-INSERT INTO `prompt_category` VALUES ('admin', '54256ae2-86c4-46c8-b3b8-58eba83de8e9', '金融类');
-INSERT INTO `prompt_category` VALUES ('admin', '56cb50bf-7975-43b3-b1e5-bd9ed966a82a', '系统提示词');
-INSERT INTO `prompt_category` VALUES ('admin', '72aba861-99d6-498d-9b68-3416c5d8d1d7', 'java代码1');
-
--- ----------------------------
 -- Table structure for roles
 -- ----------------------------
 DROP TABLE IF EXISTS `roles`;
@@ -123,19 +145,6 @@ CREATE TABLE `roles`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色' ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- Records of roles
--- ----------------------------
-INSERT INTO `roles` VALUES ('admin', '123', 'admin', NULL, 'admin', '2022-12-03 21:29:49');
-INSERT INTO `roles` VALUES ('asd', '123', 'asd', NULL, '', NULL);
-INSERT INTO `roles` VALUES ('dev', '123', '开发', NULL, '', NULL);
-INSERT INTO `roles` VALUES ('ert', '123', 'ert', NULL, 'ert', NULL);
-INSERT INTO `roles` VALUES ('sdf', '123', 'sdf', NULL, '', NULL);
-INSERT INTO `roles` VALUES ('test', '123', 'test', NULL, 'test', NULL);
-INSERT INTO `roles` VALUES ('test23', '123', 'test34', NULL, 'sdas', NULL);
-INSERT INTO `roles` VALUES ('wert', '123', 'ert', NULL, 'ert', NULL);
-INSERT INTO `roles` VALUES ('first', 'DEFAULT_INST', '第一个测试角色', NULL, 'test', '2025-07-28 00:00:00');
-
--- ----------------------------
 -- Table structure for roles_permissions
 -- ----------------------------
 DROP TABLE IF EXISTS `roles_permissions`;
@@ -146,6 +155,19 @@ CREATE TABLE `roles_permissions`  (
   `TIMESTAMP` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '时间戳',
   PRIMARY KEY (`ROLE_ID`, `PERMISSION_ID`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '角色权限关联' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Table structure for user_agent
+-- ----------------------------
+DROP TABLE IF EXISTS `user_agent`;
+CREATE TABLE `user_agent`  (
+  `user_id` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `id_agent` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+  `name_agent` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '名称',
+  `system_prompt` varchar(2000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '系统提示词',
+  `cd_desc` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL COMMENT '描述',
+  PRIMARY KEY (`user_id`, `id_agent`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user_prompt
@@ -160,8 +182,6 @@ CREATE TABLE `user_prompt`  (
   `CONTENT` varchar(16000) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL,
   PRIMARY KEY (`USER_ID`, `ID_PROMPT`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
-
-
 
 -- ----------------------------
 -- Table structure for users
@@ -186,10 +206,7 @@ CREATE TABLE `users`  (
   PRIMARY KEY (`USER_ID`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = Dynamic;
 
--- ----------------------------
--- Records of users
--- ----------------------------
-INSERT INTO `users` VALUES ('admin', 'admin', NULL, 'admin', '2022-12-03 20:49:35', NULL, NULL, NULL, NULL, '123', NULL, NULL, NULL, NULL, '2022-12-03');
+INSERT INTO `chat_ai`.`users` (`USER_ID`, `USER_NAME`, `EMAIL`, `PASSWORD`, `CREATE_TIME`, `EXPIRE_TIME`, `DEPARTMENT`, `ROLE_ID`, `ORGANIZATION`, `ID_INSTITUTION`, `VERSION`, `CD_PHONE`, `USER_FLAG`, `CD_FROZEN_STATE`, `DT_LOGIN`) VALUES ('admin', 'admin', NULL, 'admin', '2022-12-03 20:49:35', NULL, NULL, NULL, NULL, '123', NULL, NULL, NULL, NULL, '2022-12-03');
 
 -- ----------------------------
 -- Table structure for users_roles
@@ -203,3 +220,4 @@ CREATE TABLE `users_roles`  (
   PRIMARY KEY (`USER_ID`, `ROLE_ID`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '用户角色关联表' ROW_FORMAT = Dynamic;
 
+SET FOREIGN_KEY_CHECKS = 1;
