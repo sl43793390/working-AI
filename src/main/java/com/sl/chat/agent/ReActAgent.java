@@ -19,6 +19,7 @@ public class ReActAgent {
     private List<Tool> tools;
     private InMemoryMemory memory;
     private int maxIterations = 5;
+    private String systemPrompt = null;
 
     public ReActAgent(ChatModel llm, List<Tool> tools) {
         this.llm = llm;
@@ -27,11 +28,19 @@ public class ReActAgent {
         this.memory = new InMemoryMemory(10); // 初始化记忆
     }
 
+    public ReActAgent(ChatModel llm, List<Tool> tools, String systemPrompt) {
+        this(llm, tools);
+        this.systemPrompt = systemPrompt;
+    }
+
     public String run(String input) {
         logger.info("Agent started with input: {}", input);
         memory.add("user", input);
 
         StringBuilder fullPrompt = new StringBuilder();
+        if (systemPrompt != null && !systemPrompt.isEmpty()) {
+            fullPrompt.append(systemPrompt).append("\n\n");
+        }
         buildToolPrompt(fullPrompt);
 
         fullPrompt.append("Begin!\n")
@@ -40,7 +49,7 @@ public class ReActAgent {
         for (int i = 0; i < maxIterations; i++) {
             logger.debug("Starting iteration {}/{}", i + 1, maxIterations);
             String response = llm.chat(fullPrompt.toString());
-            System.out.println("LLM Response: " + response);
+            logger.debug("LLM Response: {}", response);
 
             // 检查是否有工具调用
             if (hasToolCall(response)) {
@@ -66,13 +75,13 @@ public class ReActAgent {
                 } else {
                     String finalAnswer = response;
                     logger.info("Final answer generated: {}", finalAnswer);
-                    memory.add("assistant", "Final Answer: " + finalAnswer);
+                    memory.add("assistant", finalAnswer);
                     return finalAnswer;
                 }
             } else {
                 String finalAnswer = response;
                 logger.info("Final answer generated: {}", finalAnswer);
-                memory.add("assistant", "Final Answer: " + finalAnswer);
+                memory.add("assistant", finalAnswer);
                 return finalAnswer;
             }
         }
@@ -90,7 +99,7 @@ public class ReActAgent {
      */
     private boolean hasToolCall(String response) {
         // 检查响应中是否包含Action关键词
-        return response.contains("Action:") && response.contains("Action Input:");
+        return response != null && response.contains("Action:") && response.contains("Action Input:");
     }
 
     /**
@@ -102,7 +111,7 @@ public class ReActAgent {
         try {
             // 使用正则表达式提取Action和Action Input
             Pattern actionPattern = Pattern.compile("Action:\\s*(\\w+)");
-            Pattern inputPattern = Pattern.compile("Action Input:\\s*(\\{.*\\})");
+            Pattern inputPattern = Pattern.compile("Action Input:\\s*(\\{.*?\\}|\\[.*?\\]|\".*?\"|\\d+(?:\\.\\d+)?|true|false|null)");
             
             Matcher actionMatcher = actionPattern.matcher(response);
             Matcher inputMatcher = inputPattern.matcher(response);
@@ -120,7 +129,7 @@ public class ReActAgent {
                 return toolCall;
             }
         } catch (Exception e) {
-            logger.error("Error extracting tool call from response: {}", e.getMessage());
+            logger.error("Error extracting tool call from response: {}", e.getMessage(), e);
         }
         return null;
     }
@@ -141,7 +150,7 @@ public class ReActAgent {
               .append("Action: the action to take, should be one of [")
               .append(String.join(", ", tools.stream().map(Tool::getName).toArray(String[]::new)))
               .append("]\n")
-              .append("Action Input: the input to the action in JSON format\n")
+              .append("Action Input: the input to the action, can be JSON object, array, string, number, boolean or null\n")
               .append("Observation: the result of the action\n")
               .append("... (Thought/Action/Observation can repeat)\n")
               .append("Thought: I now know the final answer\n")
@@ -151,5 +160,23 @@ public class ReActAgent {
     // 获取记忆内容（可用于调试或上下文增强）
     public InMemoryMemory getMemory() {
         return memory;
+    }
+
+    // 设置最大迭代次数
+    public void setMaxIterations(int maxIterations) {
+        if (maxIterations <= 0) {
+            throw new IllegalArgumentException("maxIterations must be positive");
+        }
+        this.maxIterations = maxIterations;
+    }
+
+    // 设置系统提示词
+    public void setSystemPrompt(String systemPrompt) {
+        this.systemPrompt = systemPrompt;
+    }
+
+    // 获取系统提示词
+    public String getSystemPrompt() {
+        return systemPrompt;
     }
 }

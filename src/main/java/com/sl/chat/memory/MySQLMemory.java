@@ -35,24 +35,36 @@ public class MySQLMemory implements Memory {
         pruneToMaxSize();
     }
 
+    /**
+     * 获取当前会话的所有消息记录，并将其转换为MemoryMessage对象列表。
+     *
+     * 该方法通过sessionId查询ChatMemory表中相关的聊天记录，按照ID升序排列，
+     * 然后将每条记录转换为MemoryMessage对象，其中角色和内容从ChatMemory中获取，
+     * 时间戳使用系统当前时间。
+     *
+     * @return 包含所有消息的MemoryMessage列表，每个元素包含角色、内容和时间戳
+     */
     @Override
     public List<MemoryMessage> getMessages() {
+        // 构造查询条件，根据sessionId查找聊天记录并按ID升序排序
         ChatMemoryExample example = new ChatMemoryExample();
         example.createCriteria().andSessionIdEqualTo(sessionId);
-        example.setOrderByClause("id ASC"); // Assuming there's an auto-incrementing ID column for ordering
+        example.setOrderByClause("id ASC"); // 假设存在自增ID列用于排序
         List<ChatMemory> chatMemories = chatMemoryMapper.selectByExampleWithBLOBs(example);
-        
+
+        // 转换ChatMemory实体为MemoryMessage对象
         List<MemoryMessage> result = new ArrayList<>();
         for (ChatMemory chatMemory : chatMemories) {
             MemoryMessage msg = new MemoryMessage();
             msg.setRole(chatMemory.getRole());
             msg.setContent(chatMemory.getContent());
-            // Using a simple approach for timestamp, as the current ChatMemory entity doesn't have timestamp field
+            // 当前ChatMemory实体没有时间戳字段，因此使用系统当前时间作为替代
             msg.setTimestamp(System.currentTimeMillis());
             result.add(msg);
         }
         return result;
     }
+
 
     @Override
     public String format() {
