@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ReActAgent {
-    private static final Logger logger = LoggerFactory.getLogger(ReActAgent.class);
+public class MyReActAgent {
+    private static final Logger logger = LoggerFactory.getLogger(MyReActAgent.class);
 
     private ChatModel llm;
     private ToolExecutor toolExecutor;
@@ -21,14 +21,14 @@ public class ReActAgent {
     private int maxIterations = 5;
     private String systemPrompt = null;
 
-    public ReActAgent(ChatModel llm, List<Tool> tools) {
+    public MyReActAgent(ChatModel llm, List<Tool> tools) {
         this.llm = llm;
         this.tools = tools;
         this.toolExecutor = new ToolExecutor(tools);
         this.memory = new InMemoryMemory(10); // 初始化记忆
     }
 
-    public ReActAgent(ChatModel llm, List<Tool> tools, String systemPrompt) {
+    public MyReActAgent(ChatModel llm, List<Tool> tools, String systemPrompt) {
         this(llm, tools);
         this.systemPrompt = systemPrompt;
     }

@@ -3,9 +3,8 @@ package com.sl.chat.ui;
 import cn.hutool.core.date.DateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sl.chat.ChatServiceGeneral;
-import com.sl.chat.agent.ReActAgent;
+import com.sl.chat.agent.MyReActAgent;
 import com.sl.chat.tool.Tool;
 import com.sl.chat.tool.ToolExecutor;
 import com.sl.config.ModelConfig;
@@ -16,7 +15,6 @@ import com.sl.entity.UserAgent;
 import com.sl.mapper.AgentMemoryMapper;
 import com.sl.service.RagService;
 import com.sl.util.ObjectMapperSingleton;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
@@ -67,7 +65,7 @@ public class AgentConversationTab extends VerticalLayout {
     // AI服务组件
     private final ChatModel openAiChatModel;
 
-    private ReActAgent reActAgent;
+    private MyReActAgent reActAgent;
     private ToolExecutor toolExecutor;
 
     public AgentConversationTab() {
@@ -187,7 +185,7 @@ public class AgentConversationTab extends VerticalLayout {
         List<Tool> availableTools = getAvailableToolsForAgent();
         if (!availableTools.isEmpty()) {
             toolExecutor = new ToolExecutor(availableTools);
-            reActAgent = new ReActAgent(openAiChatModel, availableTools);
+            reActAgent = new MyReActAgent(openAiChatModel, availableTools);
         }
     }
 
