@@ -27,6 +27,8 @@ public class KnowledgeBase {
 
     private String flagRerank;
 
+    private Integer dimension;
+
     public String getUserId() {
         return userId;
     }
@@ -129,5 +131,13 @@ public class KnowledgeBase {
 
     public void setFlagRerank(String flagRerank) {
         this.flagRerank = flagRerank == null ? null : flagRerank.trim();
+    }
+
+    public Integer getDimension() {
+        return dimension;
+    }
+
+    public void setDimension(Integer dimension) {
+        this.dimension = dimension;
     }
 }

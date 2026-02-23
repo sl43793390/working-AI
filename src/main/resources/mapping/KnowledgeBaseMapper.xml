@@ -14,6 +14,7 @@
     <result column="SEARCH_TYPE" property="searchType" jdbcType="VARCHAR" />
     <result column="SEGMENT_LENGTH" property="segmentLength" jdbcType="INTEGER" />
     <result column="SEGMENT_OVERLAP" property="segmentOverlap" jdbcType="INTEGER" />
+    <result column="DIMENSION" property="dimension" jdbcType="INTEGER" />
     <result column="FLAG_RERANK" property="flagRerank" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
@@ -47,7 +48,7 @@
   </sql>
   <sql id="Base_Column_List" >
     USER_ID, NAME_BASE, ID_BASE, DESC_BASE, NAME_PATH, NAME_COLLECTION, DB_TYPE, SEGMENTED_MODE, 
-    EMBEDDING_MODEL, SEARCH_TYPE, SEGMENT_LENGTH, SEGMENT_OVERLAP, FLAG_RERANK
+    EMBEDDING_MODEL, SEARCH_TYPE, SEGMENT_LENGTH, SEGMENT_OVERLAP, FLAG_RERANK,DIMENSION
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.KnowledgeBaseExample" >
     select
