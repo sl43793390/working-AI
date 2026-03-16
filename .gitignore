@@ -5,9 +5,10 @@
 .project
 .classpath
 .log
-
+.lingma/
 *.iml
 .DS_Store
+提示词记录.txt
 
 # The following files are generated/updated by vaadin-maven-plugin
 node_modules/
