@@ -313,6 +313,216 @@ public class AgentToolExample {
             addCriterion("name_mcp not between", value1, value2, "nameMcp");
             return (Criteria) this;
         }
+
+        public Criteria andNameToolClassIsNull() {
+            addCriterion("name_tool_class is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassIsNotNull() {
+            addCriterion("name_tool_class is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassEqualTo(String value) {
+            addCriterion("name_tool_class =", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassNotEqualTo(String value) {
+            addCriterion("name_tool_class <>", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassGreaterThan(String value) {
+            addCriterion("name_tool_class >", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassGreaterThanOrEqualTo(String value) {
+            addCriterion("name_tool_class >=", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassLessThan(String value) {
+            addCriterion("name_tool_class <", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassLessThanOrEqualTo(String value) {
+            addCriterion("name_tool_class <=", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassLike(String value) {
+            addCriterion("name_tool_class like", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassNotLike(String value) {
+            addCriterion("name_tool_class not like", value, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassIn(List<String> values) {
+            addCriterion("name_tool_class in", values, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassNotIn(List<String> values) {
+            addCriterion("name_tool_class not in", values, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassBetween(String value1, String value2) {
+            addCriterion("name_tool_class between", value1, value2, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andNameToolClassNotBetween(String value1, String value2) {
+            addCriterion("name_tool_class not between", value1, value2, "nameToolClass");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentIsNull() {
+            addCriterion("mcp_config_content is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentIsNotNull() {
+            addCriterion("mcp_config_content is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentEqualTo(String value) {
+            addCriterion("mcp_config_content =", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentNotEqualTo(String value) {
+            addCriterion("mcp_config_content <>", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentGreaterThan(String value) {
+            addCriterion("mcp_config_content >", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentGreaterThanOrEqualTo(String value) {
+            addCriterion("mcp_config_content >=", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentLessThan(String value) {
+            addCriterion("mcp_config_content <", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentLessThanOrEqualTo(String value) {
+            addCriterion("mcp_config_content <=", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentLike(String value) {
+            addCriterion("mcp_config_content like", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentNotLike(String value) {
+            addCriterion("mcp_config_content not like", value, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentIn(List<String> values) {
+            addCriterion("mcp_config_content in", values, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentNotIn(List<String> values) {
+            addCriterion("mcp_config_content not in", values, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentBetween(String value1, String value2) {
+            addCriterion("mcp_config_content between", value1, value2, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpConfigContentNotBetween(String value1, String value2) {
+            addCriterion("mcp_config_content not between", value1, value2, "mcpConfigContent");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescIsNull() {
+            addCriterion("mcp_desc is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescIsNotNull() {
+            addCriterion("mcp_desc is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescEqualTo(String value) {
+            addCriterion("mcp_desc =", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescNotEqualTo(String value) {
+            addCriterion("mcp_desc <>", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescGreaterThan(String value) {
+            addCriterion("mcp_desc >", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescGreaterThanOrEqualTo(String value) {
+            addCriterion("mcp_desc >=", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescLessThan(String value) {
+            addCriterion("mcp_desc <", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescLessThanOrEqualTo(String value) {
+            addCriterion("mcp_desc <=", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescLike(String value) {
+            addCriterion("mcp_desc like", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescNotLike(String value) {
+            addCriterion("mcp_desc not like", value, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescIn(List<String> values) {
+            addCriterion("mcp_desc in", values, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescNotIn(List<String> values) {
+            addCriterion("mcp_desc not in", values, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescBetween(String value1, String value2) {
+            addCriterion("mcp_desc between", value1, value2, "mcpDesc");
+            return (Criteria) this;
+        }
+
+        public Criteria andMcpDescNotBetween(String value1, String value2) {
+            addCriterion("mcp_desc not between", value1, value2, "mcpDesc");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

@@ -5,6 +5,9 @@
     <id column="id_agent" property="idAgent" jdbcType="VARCHAR" />
     <id column="name_tool" property="nameTool" jdbcType="VARCHAR" />
     <result column="name_mcp" property="nameMcp" jdbcType="VARCHAR" />
+    <result column="name_tool_class" property="nameToolClass" jdbcType="VARCHAR" />
+    <result column="mcp_config_content" property="mcpConfigContent" jdbcType="VARCHAR" />
+    <result column="mcp_desc" property="mcpDesc" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -36,7 +39,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id_agent, name_tool, name_mcp
+    id_agent, name_tool, name_mcp, name_tool_class, mcp_config_content, mcp_desc
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.sl.entity.AgentToolExample" >
     select
@@ -72,9 +75,11 @@
     </if>
   </delete>
   <insert id="insert" parameterType="com.sl.entity.AgentTool" >
-    insert into agent_tool (id_agent, name_tool, name_mcp
+    insert into agent_tool (id_agent, name_tool, name_mcp, 
+      name_tool_class, mcp_config_content, mcp_desc
       )
-    values (#{idAgent,jdbcType=VARCHAR}, #{nameTool,jdbcType=VARCHAR}, #{nameMcp,jdbcType=VARCHAR}
+    values (#{idAgent,jdbcType=VARCHAR}, #{nameTool,jdbcType=VARCHAR}, #{nameMcp,jdbcType=VARCHAR}, 
+      #{nameToolClass,jdbcType=VARCHAR}, #{mcpConfigContent,jdbcType=VARCHAR}, #{mcpDesc,jdbcType=VARCHAR}
       )
   </insert>
   <insert id="insertSelective" parameterType="com.sl.entity.AgentTool" >
@@ -89,6 +94,15 @@
       <if test="nameMcp != null" >
         name_mcp,
       </if>
+      <if test="nameToolClass != null" >
+        name_tool_class,
+      </if>
+      <if test="mcpConfigContent != null" >
+        mcp_config_content,
+      </if>
+      <if test="mcpDesc != null" >
+        mcp_desc,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="idAgent != null" >
@@ -100,6 +114,15 @@
       <if test="nameMcp != null" >
         #{nameMcp,jdbcType=VARCHAR},
       </if>
+      <if test="nameToolClass != null" >
+        #{nameToolClass,jdbcType=VARCHAR},
+      </if>
+      <if test="mcpConfigContent != null" >
+        #{mcpConfigContent,jdbcType=VARCHAR},
+      </if>
+      <if test="mcpDesc != null" >
+        #{mcpDesc,jdbcType=VARCHAR},
+      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.sl.entity.AgentTool" >
@@ -108,13 +131,25 @@
       <if test="nameMcp != null" >
         name_mcp = #{nameMcp,jdbcType=VARCHAR},
       </if>
+      <if test="nameToolClass != null" >
+        name_tool_class = #{nameToolClass,jdbcType=VARCHAR},
+      </if>
+      <if test="mcpConfigContent != null" >
+        mcp_config_content = #{mcpConfigContent,jdbcType=VARCHAR},
+      </if>
+      <if test="mcpDesc != null" >
+        mcp_desc = #{mcpDesc,jdbcType=VARCHAR},
+      </if>
     </set>
     where id_agent = #{idAgent,jdbcType=VARCHAR}
       and name_tool = #{nameTool,jdbcType=VARCHAR}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.sl.entity.AgentTool" >
     update agent_tool
-    set name_mcp = #{nameMcp,jdbcType=VARCHAR}
+    set name_mcp = #{nameMcp,jdbcType=VARCHAR},
+      name_tool_class = #{nameToolClass,jdbcType=VARCHAR},
+      mcp_config_content = #{mcpConfigContent,jdbcType=VARCHAR},
+      mcp_desc = #{mcpDesc,jdbcType=VARCHAR}
     where id_agent = #{idAgent,jdbcType=VARCHAR}
       and name_tool = #{nameTool,jdbcType=VARCHAR}
   </update>
