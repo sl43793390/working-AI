@@ -2,39 +2,41 @@ package com.sl.chat.ui;
 
 import cn.hutool.core.util.IdUtil;
 import com.sl.base.ui.component.ViewToolbar;
+import com.sl.chat.tool.MyTool;
+import com.sl.entity.AgentTool;
+import com.sl.entity.AgentToolExample;
 import com.sl.entity.User;
 import com.sl.entity.UserAgent;
-import com.sl.entity.AgentTool;
-import com.sl.mapper.UserAgentMapper;
 import com.sl.mapper.AgentToolMapper;
-import com.sl.chat.tool.Tool;
+import com.sl.mapper.UserAgentMapper;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.tabs.Tab;
+import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.data.provider.ListDataProvider;
-import com.vaadin.flow.router.*;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.type.classreading.CachingMetadataReaderFactory;
+import org.springframework.core.type.classreading.MetadataReader;
 
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Route("agent-mgmt")
@@ -61,7 +63,7 @@ public class AgentMgmtView extends Main {
     private AgentConversationTab agentConversationTab;
     private TabSheet tabSheet;
 
-    public AgentMgmtView(UserAgentMapper userAgentMapper,AgentToolMapper agentToolMapper) {
+    public AgentMgmtView(UserAgentMapper userAgentMapper, AgentToolMapper agentToolMapper, ChatMemoryProvider chatMemoryProvider) {
         currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         if (null == currentUser) {
             UI.getCurrent().navigate("login");
@@ -196,9 +198,10 @@ public class AgentMgmtView extends Main {
         TextArea systemPromptArea = new TextArea("System Prompt");
         systemPromptArea.setWidthFull();
 
-        MultiSelectComboBox<String> toolComboBox = new MultiSelectComboBox<>("选择工具");
+        MultiSelectComboBox<AgentTool> toolComboBox = new MultiSelectComboBox<>("选择工具");
         toolComboBox.setWidthFull();
         toolComboBox.setItems(getAvailableTools());
+        toolComboBox.setItemLabelGenerator(AgentTool::getNameTool);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
@@ -248,17 +251,16 @@ public class AgentMgmtView extends Main {
             systemPromptArea.setValue(agent.getSystemPrompt());
         }
 
-        MultiSelectComboBox<String> toolComboBox = new MultiSelectComboBox<>("选择工具");
+        MultiSelectComboBox<AgentTool> toolComboBox = new MultiSelectComboBox<>("选择工具");
         toolComboBox.setWidthFull();
         toolComboBox.setItems(getAvailableTools());
+        toolComboBox.setItemLabelGenerator(AgentTool::getNameTool);
 
         // 获取当前Agent已选择的工具
-        List<AgentTool> agentTools = agentToolMapper.selectByExample(null);
-        Set<String> selectedTools = agentTools.stream()
-                .filter(at -> at.getIdAgent().equals(agent.getIdAgent()))
-                .map(AgentTool::getNameTool)
-                .collect(Collectors.toSet());
-        toolComboBox.setValue(selectedTools);
+        AgentToolExample example = new AgentToolExample();
+        example.createCriteria().andIdAgentEqualTo(agent.getIdAgent());
+        List<AgentTool> agentTools = agentToolMapper.selectByExample(example);
+        toolComboBox.setValue(agentTools);
 
         HorizontalLayout buttonLayout = new HorizontalLayout();
         buttonLayout.setSpacing(true);
@@ -284,7 +286,7 @@ public class AgentMgmtView extends Main {
     }
 
     private boolean saveAgent(UserAgent existingAgent, String name, String desc, 
-                             String systemPrompt, Set<String> selectedTools) {
+                             String systemPrompt, Set<AgentTool> selectedTools) {
         if (name == null || name.trim().isEmpty()) {
             // 显示错误提示
             return false;
@@ -315,15 +317,15 @@ public class AgentMgmtView extends Main {
             // 保存工具关联信息
             if (existingAgent != null) {
                 // 删除旧的工具关联
-                // 这里应该根据实际的Mapper方法实现
+                for (AgentTool toolName : selectedTools) {
+                    agentToolMapper.deleteByPrimaryKey(agent.getIdAgent(), toolName.getNameTool());
+                }
             }
 
             // 添加新的工具关联
-            for (String toolName : selectedTools) {
-                AgentTool agentTool = new AgentTool();
-                agentTool.setIdAgent(agent.getIdAgent());
-                agentTool.setNameTool(toolName);
-                agentToolMapper.insert(agentTool);
+            for (AgentTool tool : selectedTools) {
+                tool.setIdAgent(agent.getIdAgent());
+                agentToolMapper.insert(tool);
             }
 
             return true;
@@ -353,44 +355,45 @@ public class AgentMgmtView extends Main {
         refreshData();
     }
 
-    private List<String> getAvailableTools() {
-        // 扫描com.sl.chat.tool包下所有实现Tool接口的类
-        List<String> tools = new ArrayList<>();
-        
-        try {
-            // 获取项目根路径
-            String classpath = System.getProperty("user.dir");
-            Path toolPath = Paths.get(classpath, "src", "main", "java", "com", "sl", "chat", "tool");
+    private List<AgentTool> getAvailableTools() {
+        List<AgentTool> tools = new ArrayList<>();
             
-            if (Files.exists(toolPath)) {
-                Files.walk(toolPath)
-                    .filter(path -> path.toString().endsWith(".java"))
-                    .forEach(path -> {
-                        try {
-                            String fileName = path.getFileName().toString().replace(".java", "");
-                            if (!"Tool".equals(fileName) && !"ToolExecutor".equals(fileName)) {
-                                // 尝试加载类并检查是否实现了Tool接口
-                                Class<?> clazz = Class.forName("com.sl.chat.tool." + fileName);
-                                if (Tool.class.isAssignableFrom(clazz) && !clazz.isInterface()) {
-                                    // 实例化并调用getName方法获取工具名称
-                                    Tool toolInstance = (Tool) clazz.getDeclaredConstructor().newInstance();
-                                    tools.add(toolInstance.getName());
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+        try {
+            // 使用 Spring 的 Resource 扫描器扫描 classpath 下带有@MyTool 注解的类
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            CachingMetadataReaderFactory metadataReaderFactory = new CachingMetadataReaderFactory(resolver);
+                
+            // 获取 com.sl.chat.tool 包下的所有 class 文件
+            org.springframework.core.io.Resource[] resources = resolver.getResources("classpath*:com/sl/chat/tool/**/*.class");
+
+            for (org.springframework.core.io.Resource resource : resources) {
+                if (resource.isReadable()) {
+                    MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(resource);
+                        
+                    // 检查是否有@MyTool 注解
+                    if (metadataReader.getAnnotationMetadata().hasAnnotation("com.sl.chat.tool.MyTool")) {
+                        String className = metadataReader.getClassMetadata().getClassName();
+                            
+                        // 加载类并获取注解信息
+                        Class<?> clazz = Class.forName(className);
+                        MyTool myTool = clazz.getAnnotation(MyTool.class);
+                            
+                        if (myTool != null && !myTool.name().isEmpty()) {
+                            // 创建 AgentTool 实例
+                            AgentTool agentTool = new AgentTool();
+                            agentTool.setIdAgent(IdUtil.getSnowflakeNextIdStr());
+                            agentTool.setNameTool(myTool.name());
+                            agentTool.setNameToolClass(clazz.getName());
+                                
+                            tools.add(agentTool);
                         }
-                    });
+                    }
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        // 默认添加天气工具
-        if (tools.isEmpty()) {
-            tools.add("get_weather");
-        }
-        
+            
         return tools;
     }
 }

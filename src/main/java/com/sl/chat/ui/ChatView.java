@@ -7,7 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sl.base.ui.component.ViewToolbar;
-import com.sl.chat.ChatServiceGeneral;
+import com.sl.chat.model.ChatServiceGeneral;
 import com.sl.config.ModelConfig;
 import com.sl.entity.ChatContent;
 import com.sl.entity.ChatMessage;
@@ -70,17 +70,17 @@ public class ChatView extends Main implements BeforeEnterObserver {
     private User currentUser;
     // 添加AI处理中的进度条组件
     private ProgressBar processingIndicator;
-    private ChatServiceGeneral chatService;
+    private ChatServiceGeneral openAiChatModel;
     private EmbeddingModel embeddingModel;
 
     @Autowired
-    public ChatView(ChatServiceGeneral chatService, RagService ragService, EmbeddingModel embeddingModel) {
+    public ChatView(ChatServiceGeneral openAiChatModel, RagService ragService, EmbeddingModel embeddingModel) {
         currentUser = (User) VaadinSession.getCurrent().getAttribute("user");
         if (null == currentUser){
             UI.getCurrent().navigate("login");
         }
         this.ragService = ragService;
-        this.chatService = chatService;
+        this.openAiChatModel = openAiChatModel;
         this.embeddingModel = embeddingModel;
         // 创建会话列表区域
         sessionsList = new VerticalLayout();
@@ -371,7 +371,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
             userInputText.append(text);
             userInputText.append("用户问题：\n");
             userInputText.append(userMessageText);
-            String response = chatService.chat(currentSession.getId(), userInputText.toString());
+            String response = openAiChatModel.chat(currentSession.getId(), userInputText.toString());
 
             MessageListItem aiMessage = new MessageListItem(
                     response,
@@ -401,7 +401,7 @@ public class ChatView extends Main implements BeforeEnterObserver {
         // 用户未选择知识库
             try {
                 // 模拟AI处理时间（实际应用中这里会调用OpenAIChatModel.chat()）
-                String response = chatService.chat(currentSession.getId(), userMessageText);
+                String response = openAiChatModel.chat(currentSession.getId(), userMessageText);
 
                 MessageListItem aiMessage = new MessageListItem(
                         response,
