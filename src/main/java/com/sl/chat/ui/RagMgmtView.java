@@ -5,11 +5,11 @@ import com.sl.entity.KnowledgeBase;
 import com.sl.entity.KnowledgeBaseFile;
 import com.sl.entity.User;
 import com.sl.service.RagService;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
@@ -25,21 +25,12 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.TabSheet;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.component.upload.StartedEvent;
-import com.vaadin.flow.component.upload.Upload;
-import com.vaadin.flow.component.upload.receivers.MultiFileMemoryBuffer;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.VaadinSession;
 import jakarta.annotation.security.PermitAll;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Route("rag-mgmt")
@@ -136,7 +127,6 @@ public class RagMgmtView extends Composite<Div> {
         knowledgeBaseGrid.addColumn(KnowledgeBase::getDescBase).setHeader("描述").setAutoWidth(true);
         knowledgeBaseGrid.addColumn(KnowledgeBase::getDbType).setHeader("存储类型").setAutoWidth(true);
         knowledgeBaseGrid.addColumn(KnowledgeBase::getEmbeddingModel).setHeader("嵌入模型").setAutoWidth(true);
-        knowledgeBaseGrid.addColumn(KnowledgeBase::getSearchType).setHeader("检索类型").setAutoWidth(true);
         knowledgeBaseGrid.addComponentColumn(knowledgeBase -> {
             HorizontalLayout actions = new HorizontalLayout();
             
@@ -211,14 +201,15 @@ public class RagMgmtView extends Composite<Div> {
         
         TextField dbTypeField = new TextField("存储类型");
         dbTypeField.setWidth("100%");
-        
-        TextField embeddingModelField = new TextField("嵌入模型");
+        // TODO 后续可以添加多个嵌入模型供 选择
+        ComboBox<String> embeddingModelField = new ComboBox<String>("嵌入模型");
         embeddingModelField.setWidth("100%");
         
-        TextField searchTypeField = new TextField("检索类型");
-        searchTypeField.setWidth("100%");
-        
-        layout.add(nameField, descField, dbTypeField, embeddingModelField, searchTypeField);
+        ComboBox<Integer> dimensionField = new ComboBox<Integer>("维度");
+        dimensionField.setItems(512, 768, 1024, 1536, 2048,3072);
+        dimensionField.setValue(1024);
+
+        layout.add(nameField, descField, dbTypeField, embeddingModelField, dimensionField);
         
         Button saveButton = new Button("保存", e -> {
             KnowledgeBase knowledgeBase = new KnowledgeBase();
@@ -227,7 +218,7 @@ public class RagMgmtView extends Composite<Div> {
             knowledgeBase.setDescBase(descField.getValue());
             knowledgeBase.setDbType(dbTypeField.getValue());
             knowledgeBase.setEmbeddingModel(embeddingModelField.getValue());
-            knowledgeBase.setSearchType(searchTypeField.getValue());
+            knowledgeBase.setDimension(dimensionField.getValue());
             knowledgeBase.setIdBase(IdUtil.simpleUUID());
             
             if (ragService.createKnowledgeBase(knowledgeBase)) {

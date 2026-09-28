@@ -1,3 +1,4 @@
+/*
 package com.sl.chat.memory;
 
 import java.util.*;
@@ -9,7 +10,7 @@ import com.sl.entity.ChatMemoryExample;
 import com.sl.mapper.AgentMemoryMapper;
 import org.springframework.context.ApplicationContext;
 
-public class MySQLMemory implements Memory {
+public class MySQLMemory implements memory {
     private AgentMemoryMapper chatMemoryMapper;
     private String sessionId;
     private int maxMessages = 10;
@@ -35,7 +36,8 @@ public class MySQLMemory implements Memory {
         pruneToMaxSize();
     }
 
-    /**
+    */
+/**
      * 获取当前会话的所有消息记录，并将其转换为MemoryMessage对象列表。
      *
      * 该方法通过sessionId查询ChatMemory表中相关的聊天记录，按照ID升序排列，
@@ -43,7 +45,8 @@ public class MySQLMemory implements Memory {
      * 时间戳使用系统当前时间。
      *
      * @return 包含所有消息的MemoryMessage列表，每个元素包含角色、内容和时间戳
-     */
+     *//*
+
     @Override
     public List<MemoryMessage> getMessages() {
         // 构造查询条件，根据sessionId查找聊天记录并按ID升序排序
@@ -95,9 +98,11 @@ public class MySQLMemory implements Memory {
         return chatMemories.size();
     }
 
-    /**
+    */
+/**
      * Prunes the memory to the maximum allowed size.
-     */
+     *//*
+
     private void pruneToMaxSize() {
         if (maxMessages <= 0) return;
 //        去除旧的消息
@@ -122,4 +127,4 @@ public class MySQLMemory implements Memory {
     public void close() {
         // No need to close resources as MyBatis handles connection management
     }
-}
+}*/

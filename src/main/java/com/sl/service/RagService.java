@@ -10,7 +10,13 @@ import com.sl.mapper.KnowledgeBaseMapper;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
+import dev.langchain4j.data.document.parser.TextDocumentParser;
+import dev.langchain4j.data.document.parser.apache.pdfbox.ApachePdfBoxDocumentParser;
+import dev.langchain4j.data.document.parser.apache.poi.ApachePoiDocumentParser;
+import dev.langchain4j.data.document.parser.markdown.MarkdownDocumentParser;
+import dev.langchain4j.data.document.splitter.DocumentByParagraphSplitter;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import dev.langchain4j.store.embedding.IngestionResult;
@@ -28,6 +34,7 @@ import java.util.List;
 @Service
 public class RagService {
 
+    Logger logger = org.slf4j.LoggerFactory.getLogger(RagService.class);
     @Resource
     private KnowledgeBaseMapper knowledgeBaseMapper;
 
@@ -39,7 +46,6 @@ public class RagService {
     private AgentMemoryMapper agentMemoryMapper;
     @Resource
     private OpenAiEmbeddingModel embeddingModel;
-    Logger logger = org.slf4j.LoggerFactory.getLogger(RagService.class);
     /**
      * 根据用户ID获取知识库列表
      * @param userId 用户ID
@@ -128,19 +134,10 @@ public class RagService {
     }
 
     public List<ChatContent> getChatContentByUserId(String userId){
-        List<ChatContent> chatContents = chatMapper.selectList(
+        return chatMapper.selectList(
                 new LambdaQueryWrapper<ChatContent>()
                         .eq(ChatContent::getUserId, userId)
         );
-        return chatContents;
-    }
-
-    public List<AgentMemory> getAgentMemoryByUserId(String userId){
-        List<AgentMemory> agentMemories = agentMemoryMapper.selectList(
-                new LambdaQueryWrapper<AgentMemory>()
-                        .eq(AgentMemory::getUserId, userId)
-        );
-        return agentMemories;
     }
 
     public int deleteChatContent(String userId, String sessionId){
@@ -168,37 +165,71 @@ public class RagService {
      */
     public IngestionResult embedFile(String userId, KnowledgeBaseFile file, KnowledgeBase selectedKnowledgeBase) {
         KnowledgeBase knowledgeBase = knowledgeBaseMapper.selectByPrimaryKey(userId, selectedKnowledgeBase.getNameBase());
-        DocumentSplitter documentSplitter = null;
+        DocumentByParagraphSplitter documentSplitter = null;
         if (knowledgeBase.getSegmentLength() != null && knowledgeBase.getSegmentOverlap() != null){
-            documentSplitter = DocumentSplitters.recursive(knowledgeBase.getSegmentLength(), knowledgeBase.getSegmentOverlap());
+            documentSplitter = new DocumentByParagraphSplitter(knowledgeBase.getSegmentLength(), knowledgeBase.getSegmentOverlap());
         }else{
-            documentSplitter = DocumentSplitters.recursive(2000, 200);
+            documentSplitter = new DocumentByParagraphSplitter(1000, 100);
         }
         //3. 创建向量存储
         EmbeddingStoreIngestor embeddingStoreIngestor = EmbeddingStoreIngestor.builder()
-                .embeddingStore(ModelConfig.milvusEmbeddingStore(selectedKnowledgeBase.getNameCollection(),1024))
+                .embeddingStore(ModelConfig.milvusEmbeddingStore(selectedKnowledgeBase.getNameCollection()
+                        ,selectedKnowledgeBase.getDimension()))
                 .documentSplitter(documentSplitter)
                 .embeddingModel(embeddingModel)
+                .textSegmentTransformer(textSegment -> TextSegment.from(
+                        textSegment.metadata().getString("file_name") + "\n" + textSegment.text(),
+                        textSegment.metadata()
+                ))
 //                .textSplitter(new CharacterTextSplitter("\\n"))
                 .build();
         //此处还需要做一些精细的处理，针对不同类型的文件使用不同的解析器，目前统一使用DocumentSplitters，TODO
         logger.info("file path:"+file.getFilePath());
-        String text = null;
-        Document document = null;
-        if (file.getFilePath().endsWith(".txt") || file.getFilePath().endsWith(".md")){
-            try {
-                text = Files.readString(Paths.get(file.getFilePath()), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            document = Document.from(text);
+        //加载单个文档
+        Document loadDocument = null;
+        String fileName = file.getFilePath();
+        if (fileName.endsWith(".txt") || fileName.endsWith(".html")){
+            loadDocument = FileSystemDocumentLoader.loadDocument(fileName, new TextDocumentParser());
+        }else if (fileName.endsWith(".pdf")){
+            loadDocument = FileSystemDocumentLoader.loadDocument(fileName,new ApachePdfBoxDocumentParser( true));
+        }else if (fileName.endsWith(".doc") || fileName.endsWith(".docx") || fileName.endsWith(".ppt") || fileName.endsWith(".pptx")
+                || fileName.endsWith(".xls") || fileName.endsWith(".xlsx")){
+            loadDocument = FileSystemDocumentLoader.loadDocument(fileName,new ApachePoiDocumentParser());
+        }else if (fileName.endsWith(".md")){
+            loadDocument = FileSystemDocumentLoader.loadDocument(fileName,new MarkdownDocumentParser());
         }else {
-            document = FileSystemDocumentLoader.loadDocument(file.getFilePath());
+            logger.error("不支持的文件类型:"+fileName);
+            return null;
         }
-        List<Document> documentList = Collections.singletonList(document);
+
+        List<Document> documentList = Collections.singletonList(loadDocument);
         file.setFlagEmbedding("Y");
         IngestionResult ingestionResult = embeddingStoreIngestor.ingest(documentList);
         knowledgeBaseFileMapper.updateByPrimaryKey(file);
         return ingestionResult;
+    }
+
+
+    public List<AgentMemory> getAgentMemoryByUserId(String userId){
+        return agentMemoryMapper.selectList(
+                new LambdaQueryWrapper<AgentMemory>()
+                        .eq(AgentMemory::getUserId, userId)
+        );
+    }
+
+    public int insertAgentMemory(AgentMemory agentMemory){
+        return agentMemoryMapper.insert(agentMemory);
+    }
+
+    public int updateAgentMemory(AgentMemory agentMemory){
+        return agentMemoryMapper.update(agentMemory,
+                new LambdaQueryWrapper<AgentMemory>()
+                        .eq(AgentMemory::getUserId, agentMemory.getUserId())
+                        .eq(AgentMemory::getSessionId, agentMemory.getSessionId())
+        );
+    }
+
+    public int deleteAgentMemory(String userId, String sessionId){
+       return agentMemoryMapper.deleteByPrimaryKey(userId, sessionId);
     }
 }

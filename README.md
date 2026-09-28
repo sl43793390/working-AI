@@ -1,6 +1,6 @@
 ### working-AI README
 
-这是一个业余项目，用于测试AI大模型对接，框架使用了springboot3 、vaadin24、spring-data-jpa、mybatis-plus3.5.12、langchain4j、spring-ai等
+这是一个学习项目，用于测试AI大模型对接，框架使用了springboot3 、vaadin24、spring-data-jpa、mybatis-plus3.5.12、langchain4j、spring-ai等
 
 ## 如何开始
 To start the application in development mode, import it into your IDE and run the `Application` class. 
@@ -21,7 +21,7 @@ To build the application in production mode, run:
 
 ### 项目总体情况
 1. 项目语言：jdk21
-2. 框架：springboot3 、vaadin24、spring-data-jpa、mybatis-plus3.5.12
+2. 框架：springboot3 、vaadin24、spring-data-jpa、mybatis-plus3.5.12，LangChain4j 1.11.0 + Spring AI (Alibaba)
 3. langchain4j实现AI大模型对接
 ### 项目结构：
 1. com.sl.chat.ui:存放页面
@@ -32,6 +32,14 @@ To build the application in production mode, run:
 6. com.sl.template.ui:存放模板页面
 7. com.sl.chat.tool.spring:是结合spring ai 实现的工具类
 8. com.sl.chat.agent.spring:是结合spring ai 创建的代理类
+
+### Key Patterns
+
+**Tool Registration**: Classes in `com.sl.chat.tool` package marked with `@MyTool` annotation are automatically discovered and registered as AI agent tools. The annotation takes `name` and `description` attributes.
+
+**Agent Creation**: Use `MyAgentFactory` to create chat agents with tools. Agents can be configured with custom system prompts and selected tools.
+
+**RAG (Retrieval Augmented Generation)**: Knowledge bases are managed via `KnowledgeBase` entity, files are processed using LangChain4j document parsers, and vector storage uses Milvus.
 
 ## 访问： 
 localhost:8080，自动跳转到登录页面
